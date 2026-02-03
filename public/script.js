@@ -153,13 +153,17 @@ function hide() {
 /* GOD FUNCTIONS */
 
 async function addPlayer() {
-  const res = await fetch("/addPlayer", {
+  await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: playerName.value, pin: playerPin.value })
+    body: JSON.stringify({
+      name: playerName.value,
+      pin: playerPin.value
+    })
   });
-  list.innerText = JSON.stringify(await res.json(), null, 2);
+  loadPlayers(); // ✅ refresh table instead
 }
+
 
 async function assignRole() {
   const res = await fetch("/assignRole", {
