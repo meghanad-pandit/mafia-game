@@ -1,0 +1,35 @@
+body {
+  background: #0f0f0f;
+  color: #fff;
+  font-family: system-ui;
+  text-align: center;
+}
+
+input, button {
+  padding: 12px;
+  margin: 6px;
+  width: 80%;
+  font-size: 16px;
+}
+
+.hidden {
+  display: none;
+}
+
+.card {
+  margin: 20px auto;
+  width: 80%;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #222, #000);
+  transform: scale(0);
+  transition: 0.4s ease;
+}
+
+.card.show {
+  transform: scale(1);
+}
+
+.card img {
+  width: 120px;
+}
