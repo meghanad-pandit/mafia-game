@@ -1,122 +1,101 @@
 let loggedInPlayer = null;
-let godToken = localStorage.getItem("godToken");
-let playerInterval = null;
 
 /* ================= PLAYER ================= */
 
 async function login() {
+  const name = document.getElementById("name").value.trim();
+  const pin = document.getElementById("pin").value.trim();
+
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.value,
-      pin: pin.value
-    })
+    body: JSON.stringify({ name, pin })
   });
 
   if (!res.ok) {
-    loginError.innerText = "❌ Invalid Name or PIN";
+    document.getElementById("loginError").innerText =
+      "❌ Invalid Name or PIN";
     return;
   }
 
   loggedInPlayer = await res.json();
 
-  loginBox.style.display = "none";
-  gameBox.style.display = "block";
-  playerName.innerText = "Hi " + loggedInPlayer.name;
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("gameBox").style.display = "block";
 
-  updatePlayerState();
-  playerInterval = setInterval(updatePlayerState, 2000);
+  document.getElementById("playerName").innerText =
+    "Welcome, " + loggedInPlayer.name;
+
+  updateStatus();
 }
 
-async function updatePlayerState() {
-  if (!loggedInPlayer) return;
+function updateStatus() {
+  const status = document.getElementById("status");
 
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: loggedInPlayer.name,
-      pin: loggedInPlayer.pin
-    })
-  });
-
-  if (!res.ok) return;
-
-  loggedInPlayer = await res.json();
+  if (!loggedInPlayer.gameStarted) {
+    status.innerText = "⏳ Waiting for God to start";
+  } else {
+    status.innerText = "🎭 Tap Reveal to see your role";
+  }
 }
 
 function reveal() {
   if (!loggedInPlayer.gameStarted) return;
 
-  roleText.innerText = loggedInPlayer.role;
-  roleImg.src = `/images/${loggedInPlayer.role.toLowerCase()}.svg`;
-  roleCard.classList.add("show");
+  const role = loggedInPlayer.role;
+  const status = document.getElementById("status");
 
-  navigator.vibrate?.([200, 100, 200]);
+  // vibration (safe)
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+  // sound (safe)
+  try {
+    new Audio("/sounds/reveal.mp3").play();
+  } catch (e) {}
+
+  status.innerHTML = `
+    <div class="card">
+      <h2>${role}</h2>
+      <img src="/images/${role.toLowerCase()}.png"
+           onerror="this.style.display='none'" />
+    </div>
+  `;
+}
+
+function hide() {
+  document.getElementById("status").innerText = "🔒 Role hidden";
+}
+
+function logout() {
+  location.reload();
 }
 
 /* ================= GOD ================= */
 
-async function godLogin() {
-  const res = await fetch("/godLogin", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: godPass.value })
-  });
-
-  if (!res.ok) {
-    alert("Invalid God Password");
-    return;
-  }
-
-  const data = await res.json();
-  godToken = data.token;
-  localStorage.setItem("godToken", godToken);
-  alert("God Logged In");
-  loadPlayers();
-}
-
 async function addPlayer() {
   await fetch("/addPlayer", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-god-token": godToken
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: playerName.value })
   });
-
-  playerName.value = "";
   loadPlayers();
 }
 
 async function assignRole(name, role) {
   await fetch("/assignRole", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-god-token": godToken
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, role })
   });
-
   loadPlayers();
 }
 
 async function startGame() {
-  await fetch("/startGame", {
-    method: "POST",
-    headers: { "x-god-token": godToken }
-  });
+  await fetch("/startGame", { method: "POST" });
 }
 
 async function resetPlayers() {
-  await fetch("/resetPlayers", {
-    method: "POST",
-    headers: { "x-god-token": godToken }
-  });
-
+  await fetch("/resetPlayers", { method: "POST" });
   loadPlayers();
 }
 
@@ -131,12 +110,13 @@ async function loadPlayers() {
       <tr>
         <td>${p.name}</td>
         <td>${p.pin}</td>
+        <td>${p.role}</td>
         <td>
           <select onchange="assignRole('${p.name}', this.value)">
-            <option ${p.role === "Villager" ? "selected" : ""}>Villager</option>
-            <option ${p.role === "Mafia" ? "selected" : ""}>Mafia</option>
-            <option ${p.role === "Detective" ? "selected" : ""}>Detective</option>
-            <option ${p.role === "Doctor" ? "selected" : ""}>Doctor</option>
+            ${["Villager","Mafia","Detective","Doctor"]
+              .map(r =>
+                `<option ${p.role === r ? "selected" : ""}>${r}</option>`
+              ).join("")}
           </select>
         </td>
         <td>
