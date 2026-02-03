@@ -1,4 +1,5 @@
 let loggedInPlayer = null;
+let playerInterval = null;
 
 /* ================= PLAYER ================= */
 
@@ -26,9 +27,14 @@ async function login() {
     "Hi, " + loggedInPlayer.name;
 
   updatePlayerState();
+
+  // 🔥 AUTO REFRESH PLAYER STATE
+  playerInterval = setInterval(updatePlayerState, 2000);
 }
 
 async function updatePlayerState() {
+  if (!loggedInPlayer) return;
+
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -47,12 +53,13 @@ async function updatePlayerState() {
   if (!loggedInPlayer.gameStarted) {
     status.innerText = "⏳ Waiting for God to start";
   } else {
-    status.innerText = "🎭 Game started! Tap Reveal";
+    status.innerText = "🎭 Game started! Click Reveal";
   }
 }
 
 function reveal() {
   if (!loggedInPlayer || !loggedInPlayer.gameStarted) return;
+
   document.getElementById("status").innerHTML =
     `🎭 Your Role: <b>${loggedInPlayer.role}</b>`;
 }
@@ -62,6 +69,7 @@ function hide() {
 }
 
 function logout() {
+  clearInterval(playerInterval);
   location.reload();
 }
 
