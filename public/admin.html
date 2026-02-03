@@ -1,11 +1,52 @@
-<table border="1" width="100%">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>PIN</th>
-      <th>Role</th>
-      <th>Copy</th>
-    </tr>
-  </thead>
-  <tbody id="table"></tbody>
-</table>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>God Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; padding: 10px; }
+    #panel { display: none; }
+    input, button { padding: 10px; margin: 5px 0; width: 100%; }
+    table { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>👑 God Panel</h2>
+
+<!-- GOD LOGIN -->
+<div id="godLogin">
+  <input id="godPassword" type="password" placeholder="God Password">
+  <button onclick="godLogin()">Login</button>
+  <p id="godError" style="color:red"></p>
+</div>
+
+<!-- GOD PANEL -->
+<div id="panel">
+
+  <input id="playerName" placeholder="Player Name">
+  <button onclick="addPlayer()">Add Player</button>
+
+  <br><br>
+
+  <button onclick="startGame()">▶ Start Game</button>
+  <button onclick="resetPlayers()">❌ Reset Players</button>
+
+  <table border="1" width="100%">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>PIN</th>
+        <th>Role</th>
+        <th>Assign</th>
+        <th>Copy</th>
+      </tr>
+    </thead>
+    <tbody id="table"></tbody>
+  </table>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
