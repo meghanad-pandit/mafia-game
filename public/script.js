@@ -22,8 +22,13 @@ async function login() {
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("gameBox").style.display = "block";
-  document.getElementById("playerName").innerText = "Welcome, " + name;
+  document.getElementById("playerName").innerText =
+    "Welcome, " + name;
 
+  showWaiting();
+}
+
+function showWaiting() {
   document.getElementById("status").innerText =
     "⏳ Waiting for God to start";
 }
@@ -38,7 +43,7 @@ async function reveal() {
   });
 
   if (!res.ok) {
-    alert("Game reset by God. Logging out.");
+    alert("Game reset by God");
     logout();
     return;
   }
@@ -46,23 +51,20 @@ async function reveal() {
   const data = await res.json();
 
   if (!data.gameStarted) {
-    document.getElementById("status").innerText =
-      "⏳ Game not started yet";
+    showWaiting();
     return;
   }
 
-  // vibration (safe)
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
-  // sound (safe + optional)
   try {
-    const audio = new Audio("/sounds/reveal.mp3");
-    audio.play().catch(() => {});
-  } catch (e) {}
+    new Audio("/sounds/reveal.mp3").play().catch(() => {});
+  } catch {}
 
   document.getElementById("status").innerHTML = `
     <div class="card">
-      <h2>${data.role}</h2>
+      <h2>Your Role</h2>
+      <h1>${data.role}</h1>
       <img src="/images/${data.role.toLowerCase()}.png"
            onerror="this.style.display='none'">
     </div>
@@ -70,14 +72,14 @@ async function reveal() {
 }
 
 function hide() {
-  document.getElementById("status").innerText = "🔒 Role hidden";
+  showWaiting();
 }
 
 function logout() {
   location.reload();
 }
 
-/* ================= GOD LOGIN ================= */
+/* ================= GOD ================= */
 
 async function godLogin() {
   const password = document.getElementById("godPassword").value;
@@ -96,15 +98,12 @@ async function godLogin() {
 
   document.getElementById("godLogin").style.display = "none";
   document.getElementById("panel").style.display = "block";
-
   loadPlayers();
 }
 
 function godLogout() {
   location.reload();
 }
-
-/* ================= GOD ACTIONS ================= */
 
 async function addPlayer() {
   await fetch("/addPlayer", {
@@ -127,6 +126,10 @@ async function assignRole(name, role) {
 
 async function startGame() {
   await fetch("/startGame", { method: "POST" });
+}
+
+async function restartGame() {
+  await fetch("/restartGame", { method: "POST" });
 }
 
 async function resetPlayers() {
@@ -157,9 +160,7 @@ async function loadPlayers() {
         <td>
           <button onclick="navigator.clipboard.writeText(
             'Username: ${p.name} | PIN: ${p.pin}'
-          )">
-            Copy
-          </button>
+          )">Copy</button>
         </td>
       </tr>
     `;
