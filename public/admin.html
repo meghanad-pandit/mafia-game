@@ -2,32 +2,35 @@
 <html>
 <head>
   <title>God Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <h2>God Panel</h2>
 
-  <input id="playerName" placeholder="Player Name">
-  <input id="playerPin" placeholder="PIN">
-  <button onclick="addPlayer()">Add Player</button>
+<h2>👑 God Panel</h2>
 
-  <hr>
+<input id="playerName" placeholder="Name">
+<input id="playerPin" placeholder="PIN">
+<button onclick="addPlayer()">Add</button>
 
-  <input id="assignName" placeholder="Name">
-  <select id="role">
-    <option>Villager</option>
-    <option>Mafia</option>
-    <option>Detective</option>
-    <option>Doctor</option>
-  </select>
-  <button onclick="assignRole()">Assign Role</button>
+<hr>
 
-  <hr>
+<input id="assignName" placeholder="Name">
+<select id="role">
+  <option>Villager</option>
+  <option>Mafia</option>
+  <option>Detective</option>
+  <option>Doctor</option>
+</select>
+<button onclick="assignRole()">Assign</button>
 
-  <button onclick="startGame()">▶ Start Game</button>
-  <button onclick="resetGame()">Reset</button>
+<hr>
 
-  <pre id="list"></pre>
+<button onclick="startGame()">▶ Start</button>
+<button onclick="restartGame()">🔁 Restart</button>
+<button onclick="resetPlayers()">❌ Reset Players</button>
 
-  <script src="script.js"></script>
+<pre id="list"></pre>
+
+<script src="script.js"></script>
 </body>
 </html>
