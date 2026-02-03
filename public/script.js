@@ -1,168 +1,91 @@
-let loggedInPlayer = null;
+const express = require("express");
+const app = express();
 
-/* ================= PLAYER ================= */
+app.use(express.json());
+app.use(express.static("public"));
 
-async function login() {
-  const name = document.getElementById("name").value.trim();
-  const pin = document.getElementById("pin").value.trim();
+const GOD_PASSWORD = "admin123";
 
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, pin })
-  });
+let players = [];
+let gameStarted = false;
 
-  if (!res.ok) {
-    document.getElementById("loginError").innerText =
-      "❌ Invalid Name or PIN";
-    return;
+/* ================= HELPERS ================= */
+
+function generatePin() {
+  return Math.floor(100 + Math.random() * 900).toString();
+}
+
+/* ================= GOD LOGIN ================= */
+
+app.post("/god/login", (req, res) => {
+  if (req.body.password === GOD_PASSWORD) {
+    return res.json({ success: true });
+  }
+  res.status(401).json({ error: "Unauthorized" });
+});
+
+/* ================= GOD ACTIONS ================= */
+
+app.post("/addPlayer", (req, res) => {
+  if (!req.body.name) {
+    return res.status(400).send("Invalid name");
   }
 
-  loggedInPlayer = { name, pin };
-
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("gameBox").style.display = "block";
-  document.getElementById("playerName").innerText =
-    "Welcome, " + name;
-
-  showWaiting();
-}
-
-function showWaiting() {
-  document.getElementById("status").innerText =
-    "⏳ Waiting for God to start";
-}
-
-async function reveal() {
-  if (!loggedInPlayer) return;
-
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(loggedInPlayer)
+  players.push({
+    name: req.body.name,
+    pin: generatePin(),
+    role: "Villager" // default
   });
 
-  if (!res.ok) {
-    alert("Game reset by God");
-    logout();
-    return;
+  res.json(players);
+});
+
+app.post("/assignRole", (req, res) => {
+  const p = players.find(x => x.name === req.body.name);
+  if (p) p.role = req.body.role;
+  res.json(players);
+});
+
+app.post("/startGame", (req, res) => {
+  gameStarted = true;
+  res.json({ started: true });
+});
+
+app.post("/restartGame", (req, res) => {
+  gameStarted = false;
+
+  // Reset roles to default
+  players.forEach(p => (p.role = "Villager"));
+
+  res.json({ restarted: true });
+});
+
+app.post("/resetPlayers", (req, res) => {
+  players = [];
+  gameStarted = false;
+  res.json({ reset: true });
+});
+
+/* ================= PLAYER LOGIN ================= */
+
+app.post("/login", (req, res) => {
+  const p = players.find(
+    x => x.name === req.body.name && x.pin === req.body.pin
+  );
+
+  if (!p) {
+    return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  const data = await res.json();
-
-  if (!data.gameStarted) {
-    showWaiting();
-    return;
-  }
-
-  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-
-  try {
-    new Audio("/sounds/reveal.mp3").play().catch(() => {});
-  } catch {}
-
-  document.getElementById("status").innerHTML = `
-    <div class="card">
-      <h2>Your Role</h2>
-      <h1>${data.role}</h1>
-      <img src="/images/${data.role.toLowerCase()}.png"
-           onerror="this.style.display='none'">
-    </div>
-  `;
-}
-
-function hide() {
-  showWaiting();
-}
-
-function logout() {
-  location.reload();
-}
-
-/* ================= GOD ================= */
-
-async function godLogin() {
-  const password = document.getElementById("godPassword").value;
-
-  const res = await fetch("/god/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
+  res.json({
+    name: p.name,
+    role: p.role,
+    gameStarted
   });
+});
 
-  if (!res.ok) {
-    document.getElementById("godError").innerText =
-      "❌ Invalid password";
-    return;
-  }
+app.get("/players", (req, res) => res.json(players));
 
-  document.getElementById("godLogin").style.display = "none";
-  document.getElementById("panel").style.display = "block";
-  loadPlayers();
-}
-
-function godLogout() {
-  location.reload();
-}
-
-async function addPlayer() {
-  await fetch("/addPlayer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: playerName.value })
-  });
-  playerName.value = "";
-  loadPlayers();
-}
-
-async function assignRole(name, role) {
-  await fetch("/assignRole", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, role })
-  });
-  loadPlayers();
-}
-
-async function startGame() {
-  await fetch("/startGame", { method: "POST" });
-}
-
-async function restartGame() {
-  await fetch("/restartGame", { method: "POST" });
-}
-
-async function resetPlayers() {
-  await fetch("/resetPlayers", { method: "POST" });
-  loadPlayers();
-}
-
-async function loadPlayers() {
-  const res = await fetch("/players");
-  const players = await res.json();
-
-  table.innerHTML = "";
-
-  players.forEach(p => {
-    table.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.pin}</td>
-        <td>${p.role}</td>
-        <td>
-          <select onchange="assignRole('${p.name}', this.value)">
-            ${["Villager","Mafia","Detective","Doctor"]
-              .map(r =>
-                `<option ${p.role === r ? "selected" : ""}>${r}</option>`
-              ).join("")}
-          </select>
-        </td>
-        <td>
-          <button onclick="navigator.clipboard.writeText(
-            'Username: ${p.name} | PIN: ${p.pin}'
-          )">Copy</button>
-        </td>
-      </tr>
-    `;
-  });
-}
+app.listen(process.env.PORT || 3000, () =>
+  console.log("🎭 Mafia Game running")
+);
