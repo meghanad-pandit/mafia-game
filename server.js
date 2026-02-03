@@ -4,9 +4,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ================= CONFIG ================= */
-
-const GOD_PASSWORD = "admin123"; // future OTP replaceable
+const GOD_PASSWORD = "admin123";
 
 let players = [];
 let gameStarted = false;
@@ -30,7 +28,7 @@ app.post("/god/login", (req, res) => {
 
 app.post("/addPlayer", (req, res) => {
   if (!req.body.name) {
-    return res.status(400).send("Invalid data");
+    return res.status(400).send("Invalid name");
   }
 
   players.push({
@@ -51,6 +49,11 @@ app.post("/assignRole", (req, res) => {
 app.post("/startGame", (req, res) => {
   gameStarted = true;
   res.json({ started: true });
+});
+
+app.post("/restartGame", (req, res) => {
+  gameStarted = false;
+  res.json({ restarted: true });
 });
 
 app.post("/resetPlayers", (req, res) => {
@@ -79,8 +82,6 @@ app.post("/login", (req, res) => {
 
 app.get("/players", (req, res) => res.json(players));
 
-/* ================= START ================= */
-
 app.listen(process.env.PORT || 3000, () =>
-  console.log("Mafia game running")
+  console.log("🎭 Mafia Game running")
 );
