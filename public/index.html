@@ -4,16 +4,29 @@
   <title>Mafia Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial; padding: 20px; text-align: center; }
-    input, button { padding: 10px; margin: 5px; width: 100%; }
-    .card {
-      animation: pop 0.4s ease;
-      background: #222;
-      color: #fff;
+    body {
+      font-family: Arial;
       padding: 20px;
-      border-radius: 12px;
+      text-align: center;
+      background: #111;
+      color: #fff;
     }
-    img { width: 120px; margin-top: 10px; }
+    input, button {
+      padding: 12px;
+      margin: 8px 0;
+      width: 100%;
+      font-size: 16px;
+    }
+    .card {
+      background: #222;
+      padding: 20px;
+      border-radius: 15px;
+      animation: pop 0.4s ease;
+    }
+    img {
+      width: 120px;
+      margin-top: 10px;
+    }
     @keyframes pop {
       from { transform: scale(0.8); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -25,17 +38,16 @@
 <h2>🎭 Mafia Game</h2>
 
 <div id="loginBox">
-  <input id="name" placeholder="Name">
-  <input id="pin" placeholder="PIN">
+  <input id="name" placeholder="Your Name">
+  <input id="pin" placeholder="3-digit PIN">
   <button onclick="login()">Login</button>
   <p id="loginError" style="color:red"></p>
 </div>
 
 <div id="gameBox" style="display:none">
   <h3 id="playerName"></h3>
-  <p id="status">⏳ Waiting</p>
-  <button onclick="reveal()">Reveal</button>
-  <button onclick="hide()">Hide</button>
+  <p id="status">⏳ Waiting for God...</p>
+  <button onclick="reveal()">Reveal / Hide</button>
   <button onclick="logout()">Logout</button>
 </div>
 
