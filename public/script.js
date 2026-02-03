@@ -3,31 +3,29 @@ let loggedInPlayer = null;
 /* ================= PLAYER ================= */
 
 async function login() {
-  loginError.innerText = "";
+  const name = document.getElementById("name").value.trim();
+  const pin = document.getElementById("pin").value.trim();
 
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.value,
-      pin: pin.value
-    })
-  });
+  const res = await fetch(
+    "https://mafia-game-fxsb.onrender.com/login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, pin })
+    }
+  );
 
   if (!res.ok) {
-    loginError.innerText = "❌ Invalid Name or PIN";
+    document.getElementById("error").innerText = "❌ Invalid Name or PIN";
     return;
   }
 
-  loggedInPlayer = await res.json();
-
-  loginBox.style.display = "none";
-  gameBox.style.display = "block";
-  playerName.innerText = "Player: " + loggedInPlayer.name;
-
-  updatePlayerState();
-  setInterval(updatePlayerState, 3000);
+  const data = await res.json();
+  console.log("Login success:", data);
 }
+
 
 async function updatePlayerState() {
   const res = await fetch("/login", {
