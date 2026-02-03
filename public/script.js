@@ -1,28 +1,5 @@
 let loggedInPlayer = null;
 
-/* ================= GOD LOGIN ================= */
-
-async function godLogin() {
-  const password = document.getElementById("godPassword").value;
-
-  const res = await fetch("/god/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
-  });
-
-  if (!res.ok) {
-    document.getElementById("godError").innerText = "❌ Invalid password";
-    return;
-  }
-
-  document.getElementById("godLogin").style.display = "none";
-  document.getElementById("panel").style.display = "block";
-
-  loadPlayers();
-}
-
-
 /* ================= PLAYER ================= */
 
 async function login() {
@@ -41,46 +18,53 @@ async function login() {
     return;
   }
 
-  loggedInPlayer = await res.json();
+  loggedInPlayer = { name, pin };
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("gameBox").style.display = "block";
+  document.getElementById("playerName").innerText = "Welcome, " + name;
 
-  document.getElementById("playerName").innerText =
-    "Welcome, " + loggedInPlayer.name;
-
-  updateStatus();
+  document.getElementById("status").innerText =
+    "⏳ Waiting for God to start";
 }
 
-function updateStatus() {
-  const status = document.getElementById("status");
+async function reveal() {
+  if (!loggedInPlayer) return;
 
-  if (!loggedInPlayer.gameStarted) {
-    status.innerText = "⏳ Waiting for God to start";
-  } else {
-    status.innerText = "🎭 Tap Reveal to see your role";
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(loggedInPlayer)
+  });
+
+  if (!res.ok) {
+    alert("Game reset by God. Logging out.");
+    logout();
+    return;
   }
-}
 
-function reveal() {
-  if (!loggedInPlayer.gameStarted) return;
+  const data = await res.json();
 
-  const role = loggedInPlayer.role;
-  const status = document.getElementById("status");
+  if (!data.gameStarted) {
+    document.getElementById("status").innerText =
+      "⏳ Game not started yet";
+    return;
+  }
 
   // vibration (safe)
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
-  // sound (safe)
+  // sound (safe + optional)
   try {
-    new Audio("/sounds/reveal.mp3").play();
+    const audio = new Audio("/sounds/reveal.mp3");
+    audio.play().catch(() => {});
   } catch (e) {}
 
-  status.innerHTML = `
+  document.getElementById("status").innerHTML = `
     <div class="card">
-      <h2>${role}</h2>
-      <img src="/images/${role.toLowerCase()}.png"
-           onerror="this.style.display='none'" />
+      <h2>${data.role}</h2>
+      <img src="/images/${data.role.toLowerCase()}.png"
+           onerror="this.style.display='none'">
     </div>
   `;
 }
@@ -93,7 +77,34 @@ function logout() {
   location.reload();
 }
 
-/* ================= GOD ================= */
+/* ================= GOD LOGIN ================= */
+
+async function godLogin() {
+  const password = document.getElementById("godPassword").value;
+
+  const res = await fetch("/god/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+
+  if (!res.ok) {
+    document.getElementById("godError").innerText =
+      "❌ Invalid password";
+    return;
+  }
+
+  document.getElementById("godLogin").style.display = "none";
+  document.getElementById("panel").style.display = "block";
+
+  loadPlayers();
+}
+
+function godLogout() {
+  location.reload();
+}
+
+/* ================= GOD ACTIONS ================= */
 
 async function addPlayer() {
   await fetch("/addPlayer", {
@@ -101,6 +112,7 @@ async function addPlayer() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: playerName.value })
   });
+  playerName.value = "";
   loadPlayers();
 }
 
@@ -143,7 +155,9 @@ async function loadPlayers() {
           </select>
         </td>
         <td>
-          <button onclick="navigator.clipboard.writeText('${p.name} / ${p.pin}')">
+          <button onclick="navigator.clipboard.writeText(
+            'Username: ${p.name} | PIN: ${p.pin}'
+          )">
             Copy
           </button>
         </td>
@@ -151,5 +165,3 @@ async function loadPlayers() {
     `;
   });
 }
-
-if (typeof table !== "undefined") loadPlayers();
