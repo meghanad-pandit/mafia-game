@@ -6,58 +6,76 @@ app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
+let godLoggedIn = false;
 
-/* ========= HELPERS ========= */
+let gameConfig = {
+  Mafia: 1,
+  Doctor: 1,
+  Detective: 1
+};
 
 function generatePin() {
   return Math.floor(100 + Math.random() * 900).toString();
 }
 
-/* ========= GOD ACTIONS ========= */
+function godAuth(req, res, next) {
+  if (!godLoggedIn) return res.status(403).send("Unauthorized");
+  next();
+}
 
-app.post("/addPlayer", (req, res) => {
-  if (!req.body.name) {
-    return res.status(400).send("Invalid data");
+/* GOD LOGIN */
+app.post("/godLogin", (req, res) => {
+  if (req.body.password === "admin123") {
+    godLoggedIn = true;
+    return res.json({ success: true });
   }
+  res.status(401).send("Invalid");
+});
 
+/* GOD ACTIONS */
+app.post("/addPlayer", godAuth, (req, res) => {
   const pin = generatePin();
+  players.push({ name: req.body.name, pin, role: "Villager" });
+  res.json(players);
+});
 
-  players.push({
-    name: req.body.name,
-    pin,
-    role: "Not Assigned"
+app.post("/setRoles", godAuth, (req, res) => {
+  gameConfig = req.body;
+  res.json(gameConfig);
+});
+
+app.post("/startGame", godAuth, (req, res) => {
+  gameStarted = true;
+
+  players.forEach(p => (p.role = "Villager"));
+
+  let rolePool = [];
+  Object.keys(gameConfig).forEach(r => {
+    for (let i = 0; i < gameConfig[r]; i++) rolePool.push(r);
   });
 
-  res.json(players);
-});
+  players
+    .sort(() => Math.random() - 0.5)
+    .slice(0, rolePool.length)
+    .forEach((p, i) => (p.role = rolePool[i]));
 
-app.post("/assignRole", (req, res) => {
-  const p = players.find(x => x.name === req.body.name);
-  if (p) p.role = req.body.role;
-  res.json(players);
-});
-
-app.post("/startGame", (req, res) => {
-  gameStarted = true;
   res.json({ started: true });
 });
 
-app.post("/resetPlayers", (req, res) => {
+app.post("/resetPlayers", godAuth, (req, res) => {
   players = [];
   gameStarted = false;
+  godLoggedIn = false;
   res.json({ reset: true });
 });
 
-/* ========= PLAYER LOGIN ========= */
-
+/* PLAYER */
 app.post("/login", (req, res) => {
   const p = players.find(
     x => x.name === req.body.name && x.pin === req.body.pin
   );
 
-  if (!p) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
+  if (!p) return res.status(401).send("Invalid");
 
   res.json({
     name: p.name,
@@ -69,6 +87,4 @@ app.post("/login", (req, res) => {
 
 app.get("/players", (req, res) => res.json(players));
 
-app.listen(process.env.PORT || 3000, () =>
-  console.log("Server running")
-);
+app.listen(process.env.PORT || 3000);
