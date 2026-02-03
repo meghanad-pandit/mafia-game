@@ -1,35 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>God Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-
-<h2>👑 God Login</h2>
-<input id="godPass" placeholder="Password">
-<button onclick="godLogin()">Login</button>
-
-<hr>
-
-<h3>Add Player</h3>
-<input id="playerName" placeholder="Name">
-<button onclick="addPlayer()">Add</button>
-
-<h3>Roles</h3>
-Mafia <input id="mafia" type="number" value="1"><br>
-Doctor <input id="doctor" type="number" value="1"><br>
-Detective <input id="detective" type="number" value="1"><br>
-<button onclick="setRoles()">Save Roles</button>
-
-<br><br>
-<button onclick="startGame()">▶ Start Game</button>
-<button onclick="resetPlayers()">Reset</button>
-
 <table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>PIN</th>
+      <th>Role</th>
+      <th>Copy</th>
+    </tr>
+  </thead>
   <tbody id="table"></tbody>
 </table>
-
-<script src="script.js"></script>
-</body>
-</html>
