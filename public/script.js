@@ -1,11 +1,46 @@
+let currentPlayer = null;
+
+async function login() {
+  currentPlayer = {
+    name: name.value,
+    pin: pin.value
+  };
+  loginBox.style.display = "none";
+  gameBox.style.display = "block";
+  setInterval(fetchState, 2000);
+}
+
+async function fetchState() {
+  const res = await fetch("/playerState", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(currentPlayer)
+  });
+  const data = await res.json();
+
+  if (!data.gameStarted) {
+    status.innerText = "⏳ Waiting for God to start";
+  } else {
+    status.innerText = "🎭 Click Reveal";
+    window.currentRole = data.role;
+  }
+}
+
+function reveal() {
+  status.innerHTML = "🎭 Your Role: <b>" + window.currentRole + "</b>";
+}
+
+function hide() {
+  status.innerText = "🔒 Role hidden";
+}
+
+/* GOD FUNCTIONS */
+
 async function addPlayer() {
   const res = await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: playerName.value,
-      pin: playerPin.value
-    })
+    body: JSON.stringify({ name: playerName.value, pin: playerPin.value })
   });
   list.innerText = JSON.stringify(await res.json(), null, 2);
 }
@@ -14,44 +49,20 @@ async function assignRole() {
   const res = await fetch("/assignRole", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: assignName.value,
-      role: role.value
-    })
+    body: JSON.stringify({ name: assignName.value, role: role.value })
   });
   list.innerText = JSON.stringify(await res.json(), null, 2);
 }
 
 async function startGame() {
   await fetch("/startGame", { method: "POST" });
-  alert("Game Started");
 }
 
-async function resetGame() {
-  const res = await fetch("/reset", { method: "POST" });
-  list.innerText = JSON.stringify(await res.json(), null, 2);
+async function restartGame() {
+  await fetch("/restartGame", { method: "POST" });
 }
 
-async function login() {
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.value,
-      pin: pin.value
-    })
-  });
-
-  const data = await res.json();
-
-  if (!data.started) {
-    result.innerText = "⏳ Waiting for game to start";
-    return;
-  }
-
-  result.innerHTML = "🎭 Your Role: <b>" + data.role + "</b>";
-
-  setTimeout(() => {
-    result.innerText = "🔒 Role hidden";
-  }, 5000);
+async function resetPlayers() {
+  await fetch("/resetPlayers", { method: "POST" });
+  list.innerText = "Players reset";
 }
