@@ -1,5 +1,28 @@
 let loggedInPlayer = null;
 
+/* ================= GOD LOGIN ================= */
+
+async function godLogin() {
+  const password = document.getElementById("godPassword").value;
+
+  const res = await fetch("/god/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+
+  if (!res.ok) {
+    document.getElementById("godError").innerText = "❌ Invalid password";
+    return;
+  }
+
+  document.getElementById("godLogin").style.display = "none";
+  document.getElementById("panel").style.display = "block";
+
+  loadPlayers();
+}
+
+
 /* ================= PLAYER ================= */
 
 async function login() {
