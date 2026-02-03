@@ -15,7 +15,7 @@ function generatePin() {
   return Math.floor(100 + Math.random() * 900).toString();
 }
 
-/* ================= GOD AUTH ================= */
+/* ================= GOD LOGIN ================= */
 
 app.post("/god/login", (req, res) => {
   if (req.body.password === GOD_PASSWORD) {
@@ -53,6 +53,10 @@ app.post("/startGame", (req, res) => {
 
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
+
+  // Reset roles to default
+  players.forEach(p => (p.role = "Villager"));
+
   res.json({ restarted: true });
 });
 
