@@ -126,7 +126,7 @@ async function loadPlayers() {
   });
 }
 
-/* Auto-load only on admin page */
+/* Auto load only on admin page */
 if (typeof table !== "undefined") {
   loadPlayers();
 }
