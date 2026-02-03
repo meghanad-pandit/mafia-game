@@ -6,26 +6,27 @@ async function login() {
   const name = document.getElementById("name").value.trim();
   const pin = document.getElementById("pin").value.trim();
 
-  const res = await fetch(
-    "https://mafia-game-fxsb.onrender.com/login",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, pin })
-    }
-  );
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, pin })
+  });
 
   if (!res.ok) {
-    document.getElementById("error").innerText = "❌ Invalid Name or PIN";
+    document.getElementById("loginError").innerText =
+      "❌ Invalid Name or PIN";
     return;
   }
 
-  const data = await res.json();
-  console.log("Login success:", data);
-}
+  loggedInPlayer = await res.json();
 
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("gameBox").style.display = "block";
+  document.getElementById("playerName").innerText =
+    "Hi, " + loggedInPlayer.name;
+
+  updatePlayerState();
+}
 
 async function updatePlayerState() {
   const res = await fetch("/login", {
@@ -33,7 +34,7 @@ async function updatePlayerState() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       name: loggedInPlayer.name,
-      pin: pin.value
+      pin: loggedInPlayer.pin
     })
   });
 
@@ -41,20 +42,23 @@ async function updatePlayerState() {
 
   loggedInPlayer = await res.json();
 
+  const status = document.getElementById("status");
+
   if (!loggedInPlayer.gameStarted) {
     status.innerText = "⏳ Waiting for God to start";
   } else {
-    status.innerText = "🎭 Ready to reveal";
+    status.innerText = "🎭 Game started! Tap Reveal";
   }
 }
 
 function reveal() {
-  if (!loggedInPlayer.gameStarted) return;
-  status.innerHTML = `🎭 Your Role: <b>${loggedInPlayer.role}</b>`;
+  if (!loggedInPlayer || !loggedInPlayer.gameStarted) return;
+  document.getElementById("status").innerHTML =
+    `🎭 Your Role: <b>${loggedInPlayer.role}</b>`;
 }
 
 function hide() {
-  status.innerText = "🔒 Role hidden";
+  document.getElementById("status").innerText = "🔒 Role hidden";
 }
 
 function logout() {
@@ -68,18 +72,18 @@ async function addPlayer() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      name: playerName.value,
-      pin: playerPin.value
+      name: playerName.value
     })
   });
+  playerName.value = "";
   loadPlayers();
 }
 
-async function assignRole(playerName, role) {
+async function assignRole(name, role) {
   await fetch("/assignRole", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: playerName, role })
+    body: JSON.stringify({ name, role })
   });
   loadPlayers();
 }
@@ -118,12 +122,11 @@ async function loadPlayers() {
             Copy
           </button>
         </td>
-      </tr>
-    `;
+      </tr>`;
   });
 }
 
-/* Auto-load table ONLY on admin page */
+/* Auto-load only on admin page */
 if (typeof table !== "undefined") {
   loadPlayers();
 }
