@@ -7,11 +7,16 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
+/* GOD ACTIONS */
+
 app.post("/addPlayer", (req, res) => {
+  if (!req.body.name || !req.body.pin) {
+    return res.status(400).send("Invalid data");
+  }
   players.push({
     name: req.body.name,
     pin: req.body.pin,
-    role: "Villager"
+    role: "Not Assigned"
   });
   res.send(players);
 });
@@ -29,7 +34,7 @@ app.post("/startGame", (req, res) => {
 
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
-  setTimeout(() => gameStarted = true, 1000);
+  players.forEach(p => p.role = p.role); // roles stay
   res.send({ restarted: true });
 });
 
@@ -39,15 +44,21 @@ app.post("/resetPlayers", (req, res) => {
   res.send({ reset: true });
 });
 
-app.post("/playerState", (req, res) => {
+/* PLAYER LOGIN */
+
+app.post("/login", (req, res) => {
   const p = players.find(
     x => x.name === req.body.name && x.pin === req.body.pin
   );
-  if (!p) return res.status(401).send("Invalid");
 
-  res.send({
-    gameStarted,
-    role: p.role
+  if (!p) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
+
+  res.json({
+    name: p.name,
+    role: p.role,
+    gameStarted
   });
 });
 
