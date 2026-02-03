@@ -1,40 +1,31 @@
 let loggedInPlayer = null;
-let playerInterval = null;
+let interval = null;
 
-/* ================= PLAYER ================= */
-
+/* PLAYER */
 async function login() {
-  const name = document.getElementById("name").value.trim();
-  const pin = document.getElementById("pin").value.trim();
-
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, pin })
+    body: JSON.stringify({
+      name: name.value,
+      pin: pin.value
+    })
   });
 
   if (!res.ok) {
-    document.getElementById("loginError").innerText =
-      "❌ Invalid Name or PIN";
+    loginError.innerText = "Invalid login";
     return;
   }
 
   loggedInPlayer = await res.json();
+  loginBox.classList.add("hidden");
+  gameBox.classList.remove("hidden");
+  playerName.innerText = "Hi " + loggedInPlayer.name;
 
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("gameBox").style.display = "block";
-  document.getElementById("playerName").innerText =
-    "Hi, " + loggedInPlayer.name;
-
-  updatePlayerState();
-
-  // 🔥 AUTO REFRESH PLAYER STATE
-  playerInterval = setInterval(updatePlayerState, 2000);
+  interval = setInterval(updateState, 2000);
 }
 
-async function updatePlayerState() {
-  if (!loggedInPlayer) return;
-
+async function updateState() {
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,56 +35,63 @@ async function updatePlayerState() {
     })
   });
 
-  if (!res.ok) return;
-
   loggedInPlayer = await res.json();
-
-  const status = document.getElementById("status");
-
-  if (!loggedInPlayer.gameStarted) {
-    status.innerText = "⏳ Waiting for God to start";
-  } else {
-    status.innerText = "🎭 Game started! Click Reveal";
-  }
 }
 
 function reveal() {
-  if (!loggedInPlayer || !loggedInPlayer.gameStarted) return;
+  if (!loggedInPlayer.gameStarted) return;
 
-  document.getElementById("status").innerHTML =
-    `🎭 Your Role: <b>${loggedInPlayer.role}</b>`;
+  roleText.innerText = loggedInPlayer.role;
+  roleImg.src = `/images/${loggedInPlayer.role.toLowerCase()}.svg`;
+  roleCard.classList.add("show");
+
+  playSound();
+  navigator.vibrate?.([200, 100, 200]);
 }
 
 function hide() {
-  document.getElementById("status").innerText = "🔒 Role hidden";
+  roleCard.classList.remove("show");
 }
 
-function logout() {
-  clearInterval(playerInterval);
-  location.reload();
+/* SOUND */
+function playSound() {
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  osc.type = "triangle";
+  osc.frequency.value = 600;
+  osc.connect(ctx.destination);
+  osc.start();
+  setTimeout(() => osc.stop(), 300);
 }
 
-/* ================= GOD ================= */
+/* GOD */
+async function godLogin() {
+  await fetch("/godLogin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: godPass.value })
+  });
+}
 
 async function addPlayer() {
   await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: playerName.value
-    })
+    body: JSON.stringify({ name: playerName.value })
   });
-  playerName.value = "";
   loadPlayers();
 }
 
-async function assignRole(name, role) {
-  await fetch("/assignRole", {
+async function setRoles() {
+  await fetch("/setRoles", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, role })
+    body: JSON.stringify({
+      Mafia: +mafia.value,
+      Doctor: +doctor.value,
+      Detective: +detective.value
+    })
   });
-  loadPlayers();
 }
 
 async function startGame() {
@@ -102,39 +100,14 @@ async function startGame() {
 
 async function resetPlayers() {
   await fetch("/resetPlayers", { method: "POST" });
-  loadPlayers();
 }
 
 async function loadPlayers() {
   const res = await fetch("/players");
   const players = await res.json();
-
-  table.innerHTML = "";
-
-  players.forEach(p => {
-    table.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.pin}</td>
-        <td>${p.role}</td>
-        <td>
-          <select onchange="assignRole('${p.name}', this.value)">
-            <option ${p.role === "Villager" ? "selected" : ""}>Villager</option>
-            <option ${p.role === "Mafia" ? "selected" : ""}>Mafia</option>
-            <option ${p.role === "Detective" ? "selected" : ""}>Detective</option>
-            <option ${p.role === "Doctor" ? "selected" : ""}>Doctor</option>
-          </select>
-        </td>
-        <td>
-          <button onclick="navigator.clipboard.writeText('${p.name} / ${p.pin}')">
-            Copy
-          </button>
-        </td>
-      </tr>`;
-  });
+  table.innerHTML = players.map(p =>
+    `<tr><td>${p.name}</td><td>${p.pin}</td><td>${p.role}</td></tr>`
+  ).join("");
 }
 
-/* Auto load only on admin page */
-if (typeof table !== "undefined") {
-  loadPlayers();
-}
+if (typeof table !== "undefined") loadPlayers();
