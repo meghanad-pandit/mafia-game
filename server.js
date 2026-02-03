@@ -6,37 +6,38 @@ app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
-let godLoggedIn = false;
 
-let gameConfig = {
-  Mafia: 1,
-  Doctor: 1,
-  Detective: 1
-};
+const GOD_PASSWORD = "admin123";
+const GOD_TOKEN = "GOD_SECRET_TOKEN"; // simple static token
+
+let roleMode = "RANDOM"; // RANDOM | MANUAL
+let gameConfig = { Mafia: 1, Doctor: 1, Detective: 1 };
+
+/* ---------- HELPERS ---------- */
 
 function generatePin() {
   return Math.floor(100 + Math.random() * 900).toString();
 }
 
 function godAuth(req, res, next) {
-  if (!godLoggedIn) return res.status(403).send("Unauthorized");
+  if (req.headers["x-god-token"] !== GOD_TOKEN) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
   next();
 }
 
-/* GOD LOGIN */
+/* ---------- GOD ---------- */
+
 app.post("/godLogin", (req, res) => {
-  if (req.body.password === "admin123") {
-    godLoggedIn = true;
-    return res.json({ success: true });
+  if (req.body.password === GOD_PASSWORD) {
+    return res.json({ token: GOD_TOKEN });
   }
-  res.status(401).send("Invalid");
+  res.status(401).json({ error: "Invalid password" });
 });
 
-/* GOD ACTIONS */
-app.post("/addPlayer", godAuth, (req, res) => {
-  const pin = generatePin();
-  players.push({ name: req.body.name, pin, role: "Villager" });
-  res.json(players);
+app.post("/setRoleMode", godAuth, (req, res) => {
+  roleMode = req.body.mode;
+  res.json({ roleMode });
 });
 
 app.post("/setRoles", godAuth, (req, res) => {
@@ -44,20 +45,40 @@ app.post("/setRoles", godAuth, (req, res) => {
   res.json(gameConfig);
 });
 
+app.post("/addPlayer", godAuth, (req, res) => {
+  if (!req.body.name) return res.status(400).send("Name required");
+
+  players.push({
+    name: req.body.name,
+    pin: generatePin(),
+    role: "Villager"
+  });
+
+  res.json(players);
+});
+
+app.post("/assignRole", godAuth, (req, res) => {
+  const p = players.find(x => x.name === req.body.name);
+  if (p) p.role = req.body.role;
+  res.json(players);
+});
+
 app.post("/startGame", godAuth, (req, res) => {
   gameStarted = true;
 
-  players.forEach(p => (p.role = "Villager"));
+  if (roleMode === "RANDOM") {
+    players.forEach(p => (p.role = "Villager"));
 
-  let rolePool = [];
-  Object.keys(gameConfig).forEach(r => {
-    for (let i = 0; i < gameConfig[r]; i++) rolePool.push(r);
-  });
+    let pool = [];
+    Object.entries(gameConfig).forEach(([role, count]) => {
+      for (let i = 0; i < count; i++) pool.push(role);
+    });
 
-  players
-    .sort(() => Math.random() - 0.5)
-    .slice(0, rolePool.length)
-    .forEach((p, i) => (p.role = rolePool[i]));
+    players
+      .sort(() => Math.random() - 0.5)
+      .slice(0, pool.length)
+      .forEach((p, i) => (p.role = pool[i]));
+  }
 
   res.json({ started: true });
 });
@@ -65,17 +86,19 @@ app.post("/startGame", godAuth, (req, res) => {
 app.post("/resetPlayers", godAuth, (req, res) => {
   players = [];
   gameStarted = false;
-  godLoggedIn = false;
   res.json({ reset: true });
 });
 
-/* PLAYER */
+/* ---------- PLAYER ---------- */
+
 app.post("/login", (req, res) => {
   const p = players.find(
     x => x.name === req.body.name && x.pin === req.body.pin
   );
 
-  if (!p) return res.status(401).send("Invalid");
+  if (!p) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
 
   res.json({
     name: p.name,
