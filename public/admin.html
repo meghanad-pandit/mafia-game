@@ -3,6 +3,11 @@
 <head>
   <title>God Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #ccc; padding:6px; text-align:center; }
+    button { padding:6px 10px; }
+  </style>
 </head>
 <body>
 
@@ -10,26 +15,25 @@
 
 <input id="playerName" placeholder="Name">
 <input id="playerPin" placeholder="PIN">
-<button onclick="addPlayer()">Add</button>
+<button onclick="addPlayer()">Add Player</button>
 
-<hr>
+<br><br>
 
-<input id="assignName" placeholder="Name">
-<select id="role">
-  <option>Villager</option>
-  <option>Mafia</option>
-  <option>Detective</option>
-  <option>Doctor</option>
-</select>
-<button onclick="assignRole()">Assign</button>
-
-<hr>
-
-<button onclick="startGame()">▶ Start</button>
-<button onclick="restartGame()">🔁 Restart</button>
+<button onclick="startGame()">▶ Start Game</button>
 <button onclick="resetPlayers()">❌ Reset Players</button>
 
-<pre id="list"></pre>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>PIN</th>
+      <th>Role</th>
+      <th>Assign</th>
+      <th>Copy</th>
+    </tr>
+  </thead>
+  <tbody id="table"></tbody>
+</table>
 
 <script src="script.js"></script>
 </body>
