@@ -7,44 +7,48 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
-/* GOD ACTIONS */
+/* ========= HELPERS ========= */
+
+function generatePin() {
+  return Math.floor(100 + Math.random() * 900).toString();
+}
+
+/* ========= GOD ACTIONS ========= */
 
 app.post("/addPlayer", (req, res) => {
-  if (!req.body.name || !req.body.pin) {
+  if (!req.body.name) {
     return res.status(400).send("Invalid data");
   }
+
+  const pin = generatePin();
+
   players.push({
     name: req.body.name,
-    pin: req.body.pin,
+    pin,
     role: "Not Assigned"
   });
-  res.send(players);
+
+  res.json(players);
 });
 
 app.post("/assignRole", (req, res) => {
   const p = players.find(x => x.name === req.body.name);
   if (p) p.role = req.body.role;
-  res.send(players);
+  res.json(players);
 });
 
 app.post("/startGame", (req, res) => {
   gameStarted = true;
-  res.send({ started: true });
-});
-
-app.post("/restartGame", (req, res) => {
-  gameStarted = false;
-  players.forEach(p => p.role = p.role); // roles stay
-  res.send({ restarted: true });
+  res.json({ started: true });
 });
 
 app.post("/resetPlayers", (req, res) => {
   players = [];
   gameStarted = false;
-  res.send({ reset: true });
+  res.json({ reset: true });
 });
 
-/* PLAYER LOGIN */
+/* ========= PLAYER LOGIN ========= */
 
 app.post("/login", (req, res) => {
   const p = players.find(
@@ -57,11 +61,14 @@ app.post("/login", (req, res) => {
 
   res.json({
     name: p.name,
+    pin: p.pin,
     role: p.role,
     gameStarted
   });
 });
 
-app.get("/players", (req, res) => res.send(players));
+app.get("/players", (req, res) => res.json(players));
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () =>
+  console.log("Server running")
+);
