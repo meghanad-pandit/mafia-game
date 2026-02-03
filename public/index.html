@@ -3,31 +3,24 @@
 <head>
   <title>Mafia Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { background:#0f172a; color:#fff; font-family:sans-serif; text-align:center; }
-    input, button { padding:12px; margin:6px; width:80%; font-size:16px; }
-    .card { background:#1e293b; padding:20px; border-radius:12px; margin-top:20px; }
-  </style>
 </head>
 <body>
 
 <h2>🎭 Mafia Game</h2>
 
 <div id="loginBox">
-  <input id="name" placeholder="Enter Name">
-  <input id="pin" placeholder="Enter PIN">
+  <input id="name" placeholder="Name">
+  <input id="pin" placeholder="PIN">
   <button onclick="login()">Login</button>
   <p id="loginError"></p>
 </div>
 
 <div id="gameBox" style="display:none">
-  <div class="card">
-    <h3 id="playerName"></h3>
-    <p id="status">⏳ Waiting for game to start</p>
-    <button onclick="reveal()">Reveal Role</button>
-    <button onclick="hide()">Hide</button>
-    <button onclick="logout()">Logout</button>
-  </div>
+  <h3 id="playerName"></h3>
+  <p id="status">⏳ Waiting</p>
+  <button onclick="reveal()">Reveal</button>
+  <button onclick="hide()">Hide</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <script src="script.js"></script>
