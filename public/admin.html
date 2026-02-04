@@ -8,30 +8,34 @@
 
 <h2>👑 God Panel</h2>
 
+<!-- GOD LOGIN -->
 <div id="godLogin">
   <input id="godKey" placeholder="Enter God Key">
   <button onclick="godLogin()">Login</button>
   <p id="godError"></p>
 </div>
 
-<div id="panel" style="display:none">
+<!-- GOD PANEL -->
+<div id="godPanel" style="display:none">
 
   <input id="playerName" placeholder="Player Name">
-  <button onclick="addPlayer()">➕ Add Player</button>
+  <input id="playerPin" placeholder="PIN">
+  <button onclick="addPlayer()">Add Player</button>
 
   <br><br>
 
   <button onclick="startGame()">▶ Start Game</button>
-  <button onclick="restartGame()">🔄 Restart</button>
-  <button onclick="resetPlayers()">❌ Reset</button>
+  <button onclick="restartGame()">🔄 Restart Game</button>
+  <button onclick="resetPlayers()">❌ Reset Players</button>
+  <button onclick="logout()">🚪 Logout</button>
 
   <table border="1" width="100%">
     <thead>
       <tr>
         <th>Name</th>
-        <th>Key</th>
+        <th>PIN</th>
         <th>Role</th>
-        <th>Assign</th>
+        <th>Assign Role</th>
         <th>Copy</th>
       </tr>
     </thead>
