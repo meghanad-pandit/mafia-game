@@ -21,7 +21,7 @@ app.post("/god/login", (req, res) => {
     return res.status(401).send("Invalid password");
 
   if (godLoggedIn)
-    return res.status(403).send("God already logged in");
+    return res.status(403).send("Already logged in");
 
   godLoggedIn = true;
   res.send({ success: true });
@@ -35,12 +35,7 @@ app.post("/god/logout", (req, res) => {
 /* GOD ACTIONS */
 app.post("/addPlayer", (req, res) => {
   const key = generateKey();
-
-  players.push({
-    key,
-    role: "Villager"
-  });
-
+  players.push({ key, role: "Villager" });
   res.send(players);
 });
 
@@ -81,7 +76,5 @@ app.post("/login", (req, res) => {
 app.get("/status", (req, res) => {
   res.send({ gameStarted });
 });
-
-app.get("/players", (req, res) => res.send(players));
 
 app.listen(process.env.PORT || 3000);
