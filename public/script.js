@@ -20,6 +20,7 @@ async function loadPlayers() {
   players.forEach(p => {
     table.innerHTML += `
       <tr>
+        <td>${p.name}</td>
         <td>${p.key}</td>
         <td>${p.role}</td>
         <td>
@@ -41,17 +42,26 @@ function copyKey(key) {
   alert("Key copied");
 }
 
+async function addPlayer() {
+  const name = playerName.value.trim();
+  if (!name) return alert("Enter player name");
+
+  await fetch("/addPlayer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name })
+  });
+
+  playerName.value = "";
+  loadPlayers();
+}
+
 async function assign(key, role) {
   await fetch("/assignRole", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key, role })
   });
-  loadPlayers();
-}
-
-async function addPlayer() {
-  await fetch("/addPlayer", { method: "POST" });
   loadPlayers();
 }
 
