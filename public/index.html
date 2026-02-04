@@ -1,87 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  
   <title>Mafia Game</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, Arial, sans-serif;
-      background: linear-gradient(135deg, #1d2671, #c33764);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-    }
-  
-    .card {
-      background: rgba(0,0,0,0.6);
-      padding: 20px;
-      width: 100%;
-      max-width: 380px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      animation: fadeIn 0.6s ease;
-    }
-  
-    input, button, select {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
-  
-    button {
-      background: #ff9800;
-      color: black;
-      font-weight: bold;
-    }
-  
-    button:disabled {
-      opacity: 0.5;
-    }
-  
-    table {
-      width: 100%;
-      font-size: 14px;
-    }
-  
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
 
-<div class="card login">
-  <h2>Join Game</h2>
+<h2>🎭 Mafia Game</h2>
+
+<div id="loginBox">
   <input id="playerKey" placeholder="Enter Game Key">
   <button onclick="playerLogin()">Login</button>
+  <p id="error"></p>
 </div>
 
-<div id="playerScreen" class="hidden">
-  <h2 id="welcome"></h2>
-
-  <div id="waiting">😴 Waiting for God to start the game...</div>
-
-  <div class="flip-card hidden" id="roleCard">
-    <div class="flip-inner">
-      <div class="flip-front">🎭 Your Role</div>
-      <div class="flip-back">
-        <img id="roleImg">
-        <h3 id="roleText"></h3>
-      </div>
-    </div>
-  </div>
-
-  <button onclick="toggleReveal()">Reveal / Hide</button>
+<div id="gameBox" style="display:none">
+  <h3 id="playerName"></h3>
+  <p id="status">⏳ Waiting for game to start...</p>
+  <button onclick="reveal()">Reveal</button>
+  <button onclick="hide()">Hide</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <audio id="startSound" src="sounds/start.mp3"></audio>
