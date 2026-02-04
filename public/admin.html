@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
   <title>God Panel</title>
@@ -15,7 +14,12 @@
 </div>
 
 <div id="panel" style="display:none">
+
+  <input id="playerName" placeholder="Player Name">
   <button onclick="addPlayer()">➕ Add Player</button>
+
+  <br><br>
+
   <button onclick="startGame()">▶ Start</button>
   <button onclick="restartGame()">🔄 Restart</button>
   <button onclick="resetPlayers()">❌ Reset</button>
@@ -24,6 +28,7 @@
   <table border="1" width="100%">
     <thead>
       <tr>
+        <th>Name</th>
         <th>Key</th>
         <th>Role</th>
         <th>Assign</th>
@@ -32,6 +37,7 @@
     </thead>
     <tbody id="table"></tbody>
   </table>
+
 </div>
 
 <script src="script.js"></script>
