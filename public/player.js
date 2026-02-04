@@ -12,6 +12,8 @@ const cardInner = document.getElementById("cardInner");
 const roleText = document.getElementById("roleText");
 const roleImage = document.getElementById("roleImage");
 const startSound = document.getElementById("startSound");
+const notification = document.getElementById("notification");
+
 
 const roleImages = {
   Villager: "images/villager.png",
@@ -156,6 +158,15 @@ function logout() {
   updateRoleCard(false);
 }
 
+function showNotification(message, duration = 3000) {
+  notification.textContent = message;
+  notification.style.display = "block";
+
+  setTimeout(() => {
+    notification.style.display = "none";
+  }, duration);
+}
+
 // Poll server every 5 seconds to update player state
 async function pollPlayerStatus() {
   if (!loggedInPlayer) return;
@@ -177,7 +188,7 @@ async function pollPlayerStatus() {
     // Detect game reset (gameStarted false but previously true)
     if (loggedInPlayer.gameStarted && !data.gameStarted) {
       loggedInPlayer = { ...loggedInPlayer, ...data };
-      alert("Game has been reset by God! Your role is now hidden.");
+      showNotification("Game has been reset by God! Your role is now hidden.");
       updateStatus();
       return;
     }
