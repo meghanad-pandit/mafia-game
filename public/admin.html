@@ -1,83 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>God Screen</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-  body {
-    margin: 0;
-    font-family: system-ui, Arial, sans-serif;
-    background: linear-gradient(135deg, #1d2671, #c33764);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-  }
-
-  .card {
-    background: rgba(0,0,0,0.6);
-    padding: 20px;
-    width: 100%;
-    max-width: 380px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    animation: fadeIn 0.6s ease;
-  }
-
-  input, button, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-  }
-
-  button {
-    background: #ff9800;
-    color: black;
-    font-weight: bold;
-  }
-  button:disabled {
-    opacity: 0.5;
-  }
-  table {
-    width: 100%;
-    font-size: 14px;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
-
+  <title>God Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
 
-<div id="godLogin" class="card">
-  <h2>👑 God Login</h2>
-  <input id="godKey" placeholder="Enter God Key">
+<h2>👑 God Panel</h2>
+
+<div id="godLogin">
+  <input id="godKey" placeholder="God Key">
   <button onclick="godLogin()">Login</button>
   <p id="godError"></p>
 </div>
 
-<div id="godPanel" class="hidden">
-  <h2>God Panel 👑</h2>
+<div id="godPanel" style="display:none">
 
   <input id="playerName" placeholder="Player Name">
   <button onclick="addPlayer()">Add Player</button>
 
-  <button onclick="startGame()">Start Game</button>
-  <button onclick="resetGame()">Reset Players</button>
+  <br><br>
 
-  <table>
-    <thead>
-      <tr><th>Name</th><th>Key</th><th>Role</th><th>❌</th></tr>
-    </thead>
-    <tbody id="playerTable"></tbody>
-  </table>
+  <button id="startBtn" onclick="startGame()">▶ Start Game</button>
+  <button onclick="resetGame()">🔄 Reset Game</button>
+  <button onclick="logout()">Logout</button>
+
+  <br><br>
+
+  <div style="max-height:300px; overflow:auto;">
+    <table border="1" width="100%">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Key</th>
+          <th>Role</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="playerTable"></tbody>
+    </table>
+  </div>
+
 </div>
 
 <script src="script.js"></script>
