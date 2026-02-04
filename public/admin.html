@@ -3,32 +3,93 @@
 <head>
   <title>God Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+    #godLogin, #godPanel {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #34495e;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    input, button, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background-color: #e67e22;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #7f8c8d;
+      cursor: not-allowed;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: block;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ecf0f1;
+      text-align: left;
+      background: #34495e;
+    }
+    th {
+      background: #e67e22;
+      color: #2c3e50;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    select {
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+    button.deleteBtn {
+      background: #c0392b;
+      width: 100%;
+      padding: 6px 0;
+    }
+  </style>
 </head>
 <body>
 
 <h2>👑 God Panel</h2>
 
 <div id="godLogin">
-  <input id="godKey" placeholder="God Key">
+  <input id="godKey" placeholder="Enter God Key" autocomplete="off">
   <button onclick="godLogin()">Login</button>
   <p id="godError"></p>
 </div>
 
 <div id="godPanel" style="display:none">
 
-  <input id="playerName" placeholder="Player Name">
+  <input id="playerName" placeholder="Player Name" autocomplete="off">
   <button onclick="addPlayer()">Add Player</button>
 
-  <br><br>
+  <br>
 
   <button id="startBtn" onclick="startGame()">▶ Start Game</button>
   <button onclick="resetGame()">🔄 Reset Game</button>
   <button onclick="logout()">Logout</button>
 
-  <br><br>
-
-  <div style="max-height:300px; overflow:auto;">
-    <table border="1" width="100%">
+  <div style="max-height: 320px; overflow-y: auto; margin-top: 15px;">
+    <table>
       <thead>
         <tr>
           <th>Name</th>
