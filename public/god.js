@@ -1,10 +1,13 @@
-async function godLogin() {
-  const key = document.getElementById("godKey").value.trim();
-  const godError = document.getElementById("godError");
-  godError.innerText = "";
+// Make godLogin global so admin.html can access it
+window.godLogin = async function() {
+  const keyInput = document.getElementById("godKey");
+  const errorP = document.getElementById("godLoginError");
+  const godKey = keyInput.value.trim();
 
-  if (!key) {
-    godError.innerText = "Please enter the God Key";
+  errorP.textContent = "";
+
+  if (!godKey) {
+    errorP.textContent = "Please enter the God Key";
     return;
   }
 
@@ -12,58 +15,135 @@ async function godLogin() {
     const res = await fetch("/god/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key })
+      body: JSON.stringify({ key: godKey })
     });
 
     if (!res.ok) {
-      godError.innerText = "❌ Invalid God Key";
+      errorP.textContent = "❌ Invalid God Key";
       return;
     }
 
-    document.getElementById("godLogin").style.display = "none";
-    document.getElementById("godPanel").style.display = "block";
+    // Hide login, show admin panel
+    document.getElementById("godLoginDiv").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
 
     loadPlayers();
-  } catch {
-    godError.innerText = "Network error, try again.";
+
+  } catch (e) {
+    errorP.textContent = "Error connecting to server";
+  }
+};
+
+async function loadPlayers() {
+  const tbody = document.getElementById("playersTableBody");
+  tbody.innerHTML = "";
+
+  try {
+    const res = await fetch("/players");
+    if (!res.ok) throw new Error("Failed to load players");
+
+    const data = await res.json();
+    const players = data.players;
+    const gameStarted = data.gameStarted;
+
+    const startBtn = document.getElementById("startGameBtn");
+    startBtn.disabled = gameStarted;
+
+    players.forEach(p => {
+      const tr = document.createElement("tr");
+
+      // Name
+      const nameTd = document.createElement("td");
+      nameTd.textContent = p.name;
+      tr.appendChild(nameTd);
+
+      // Key
+      const keyTd = document.createElement("td");
+      keyTd.textContent = p.key;
+      tr.appendChild(keyTd);
+
+      // Role
+      const roleTd = document.createElement("td");
+      roleTd.textContent = p.role;
+      tr.appendChild(roleTd);
+
+      // Role Select
+      const selectTd = document.createElement("td");
+      const roleSelect = document.createElement("select");
+      roleSelect.classList.add("role-select");
+      ["Villager", "Mafia", "Detective", "Doctor"].forEach(roleOption => {
+        const opt = document.createElement("option");
+        opt.value = roleOption;
+        opt.textContent = roleOption;
+        if (p.role === roleOption) opt.selected = true;
+        roleSelect.appendChild(opt);
+      });
+      roleSelect.disabled = gameStarted; // disable change if game started
+      roleSelect.addEventListener("change", async (e) => {
+        await assignRole(p.key, e.target.value);
+      });
+      selectTd.appendChild(roleSelect);
+      tr.appendChild(selectTd);
+
+      // Copy button
+      const copyTd = document.createElement("td");
+      const copyBtn = document.createElement("button");
+      copyBtn.textContent = "Copy Key";
+      copyBtn.classList.add("copy-btn");
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(p.key);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => copyBtn.textContent = "Copy Key", 1500);
+      };
+      copyTd.appendChild(copyBtn);
+      tr.appendChild(copyTd);
+
+      // Delete button
+      const deleteTd = document.createElement("td");
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete";
+      delBtn.classList.add("delete-btn");
+      delBtn.onclick = async () => {
+        if (confirm(`Delete player "${p.name}"?`)) {
+          await deletePlayer(p.key);
+        }
+      };
+      deleteTd.appendChild(delBtn);
+      tr.appendChild(deleteTd);
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    alert("Error loading players");
   }
 }
 
 async function addPlayer() {
-  const playerNameInput = document.getElementById("playerName");
-  const name = playerNameInput.value.trim();
-  if (!name) return alert("Please enter player name");
+  const input = document.getElementById("playerName");
+  const name = input.value.trim();
+  if (!name) {
+    alert("Please enter player name");
+    return;
+  }
 
   try {
-    await fetch("/addPlayer", {
+    const res = await fetch("/addPlayer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name })
     });
 
-    playerNameInput.value = "";
+    if (!res.ok) throw new Error("Failed to add player");
+
+    input.value = "";
     loadPlayers();
+
   } catch {
-    alert("Failed to add player");
+    alert("Error adding player");
   }
 }
 
-async function deletePlayer(key) {
-  if (!confirm("Are you sure you want to delete this player?")) return;
-
-  try {
-    await fetch("/deletePlayer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key })
-    });
-    loadPlayers();
-  } catch {
-    alert("Failed to delete player");
-  }
-}
-
-async function changeRole(key, role) {
+async function assignRole(key, role) {
   try {
     await fetch("/assignRole", {
       method: "POST",
@@ -72,46 +152,47 @@ async function changeRole(key, role) {
     });
     loadPlayers();
   } catch {
-    alert("Failed to change role");
+    alert("Error assigning role");
+  }
+}
+
+async function deletePlayer(key) {
+  try {
+    await fetch("/deletePlayer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key })
+    });
+    loadPlayers();
+  } catch {
+    alert("Error deleting player");
   }
 }
 
 async function startGame() {
   try {
-    await fetch("/startGame", { method: "POST" });
-    document.getElementById("startBtn").disabled = true;
+    const res = await fetch("/startGame", { method: "POST" });
+    if (!res.ok) throw new Error("Failed to start game");
+
     loadPlayers();
+
+    alert("Game started! Players will be notified.");
   } catch {
-    alert("Failed to start game");
+    alert("Error starting game");
   }
 }
 
 async function resetGame() {
-  if (!confirm("Are you sure you want to reset the game? All roles will reset.")) return;
+  if (!confirm("Are you sure you want to reset the game? All roles will be reset to Villager.")) return;
 
   try {
-    await fetch("/resetGame", { method: "POST" });
-    document.getElementById("startBtn").disabled = false;
+    const res = await fetch("/resetGame", { method: "POST" });
+    if (!res.ok) throw new Error("Failed to reset game");
+
     loadPlayers();
+
+    alert("Game reset! Roles are now all Villagers and players will be notified.");
   } catch {
-    alert("Failed to reset game");
+    alert("Error resetting game");
   }
 }
-
-async function loadPlayers() {
-  try {
-    const res = await fetch("/players");
-    if (!res.ok) return;
-
-    const data = await res.json();
-
-    const table = document.getElementById("playerTable");
-    table.innerHTML = "";
-
-    data.players.forEach(p => {
-      table.innerHTML += `
-        <tr>
-          <td>${p.name}</td>
-          <td>
-            ${p.key}
-            <button onclick
