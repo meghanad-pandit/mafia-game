@@ -59,24 +59,13 @@ async function loadPlayers() {
 
       // Key + Copy inline
       const keyTd = document.createElement("td");
-      keyTd.style.display = "flex";
-      keyTd.style.justifyContent = "space-between";
-      keyTd.style.alignItems = "center";
-
-      const keySpan = document.createElement("span");
-      keySpan.textContent = p.key;
-      keyTd.appendChild(keySpan);
-
-      const copyBtn = document.createElement("button");
-      copyBtn.textContent = "Copy";
-      copyBtn.classList.add("copy-btn");
-      copyBtn.style.marginLeft = "10px";
-      copyBtn.onclick = () => {
+      keyTd.style.cursor = "pointer";
+      keyTd.title = "Click to copy key";
+      keyTd.textContent = p.key;
+      keyTd.onclick = () => {
         navigator.clipboard.writeText(p.key);
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+        showCopyFeedback(keyTd);
       };
-      keyTd.appendChild(copyBtn);
       tr.appendChild(keyTd);
 
       // Role dropdown (with change role)
