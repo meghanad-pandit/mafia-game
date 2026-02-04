@@ -7,98 +7,75 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
-/* ---------------- UTIL ---------------- */
+const GOD_KEY = "1234"; // change later to OTP
 
-function generateKey() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+/* ---------------- GOD LOGIN ---------------- */
+
+app.post("/god/login", (req, res) => {
+  const { key } = req.body;
+  if (key !== GOD_KEY) {
+    return res.status(401).json({ error: "Invalid God Key" });
+  }
+  res.json({ success: true });
+});
 
 /* ---------------- GOD ACTIONS ---------------- */
 
-// Add Player
 app.post("/addPlayer", (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ error: "Name required" });
-
-  const key = generateKey();
+  const { name, pin } = req.body;
+  if (!name || !pin) return res.status(400).send("Invalid data");
 
   players.push({
     name,
-    key,
-    role: "Villager"
+    pin,
+    role: "Villager" // default role
   });
 
   res.json(players);
 });
 
-// Start Game
+app.post("/assignRole", (req, res) => {
+  const p = players.find(x => x.name === req.body.name);
+  if (p) p.role = req.body.role;
+  res.json(players);
+});
+
 app.post("/startGame", (req, res) => {
   gameStarted = true;
   res.json({ started: true });
 });
 
-// Restart Game (clear roles)
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
-  players.forEach(p => p.role = "Villager");
+  players.forEach(p => (p.role = "Villager"));
   res.json({ restarted: true });
 });
 
-// Reset Everything
 app.post("/resetPlayers", (req, res) => {
   players = [];
   gameStarted = false;
   res.json({ reset: true });
 });
 
-// Assign Role (manual / god)
-app.post("/assignRole", (req, res) => {
-  const { key, role } = req.body;
-  const p = players.find(x => x.key === key);
-  if (p) p.role = role;
-  res.json(players);
-});
-
-// Get Players
-app.get("/players", (req, res) => {
-  res.json(players);
-});
-
-/* ---------------- GOD LOGIN ---------------- */
-
-const GOD_KEY = "GOD123"; // later replace with OTP logic
-
-app.post("/god/login", (req, res) => {
-  const { key } = req.body;
-
-  if (key !== GOD_KEY) {
-    return res.status(401).json({ error: "Invalid God Key" });
-  }
-
-  res.json({ success: true });
-});
-
-
 /* ---------------- PLAYER LOGIN ---------------- */
 
 app.post("/login", (req, res) => {
-  const { key } = req.body;
-  const p = players.find(x => x.key === key);
+  const { name, pin } = req.body;
 
-  if (!p) {
-    return res.status(401).json({ error: "Invalid key" });
-  }
+  const p = players.find(x => x.name === name && x.pin === pin);
+  if (!p) return res.status(401).json({ error: "Invalid credentials" });
 
   res.json({
     name: p.name,
-    role: gameStarted ? p.role : null,
+    role: p.role,
     gameStarted
   });
 });
 
-/* ---------------- SERVER ---------------- */
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Mafia game running on port", PORT);
+app.get("/players", (req, res) => {
+  res.json(players);
 });
+
+app.listen(process.env.PORT || 3000, () =>
+  console.log("Server running")
+);
