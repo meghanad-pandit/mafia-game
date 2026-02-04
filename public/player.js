@@ -53,9 +53,10 @@ async function playerLogin() {
     };
 
     showGameBox();
+
+    // Play sound and update UI if game started
     if (loggedInPlayer.gameStarted) {
-      playStartSound();
-      updateStatus();
+      notifyGameStarted();
     }
   } catch {
     loginError.textContent = "Error connecting to server";
@@ -75,7 +76,7 @@ function showGameBox() {
 function updateRoleCard(showRole) {
   if (showRole) {
     roleText.textContent = loggedInPlayer.role;
-    roleImage.src = roleImages[loggedInPlayer.role] || "images/question.png";
+    roleImage.src = roleImages[loggedInPlayer.role] || "";
     cardInner.classList.add("flipped");
   } else {
     roleText.textContent = "";
@@ -86,14 +87,14 @@ function updateRoleCard(showRole) {
 
 function updateStatus() {
   if (!loggedInPlayer.gameStarted) {
-    statusEl.textContent = "⏳ Waiting for game to start...";
+    statusEl.textContent = `⏳ Waiting for game to start...`;
     revealBtn.style.display = "none";
     hideBtn.style.display = "none";
     updateRoleCard(false);
     return;
   }
 
-  statusEl.textContent = "🎭 Game started! You can reveal your role.";
+  statusEl.textContent = `🎭 Game started! You can reveal your role.`;
   if (loggedInPlayer.revealed) {
     updateRoleCard(true);
     revealBtn.style.display = "none";
@@ -105,12 +106,13 @@ function updateStatus() {
   }
 }
 
-// Play sound and vibrate
-function playStartSound() {
-  startSound.play().catch(() => {}); // ignore errors
+// Play sound and vibrate on game start notification
+function notifyGameStarted() {
+  startSound.play().catch(() => {});
   if ("vibrate" in navigator) {
     navigator.vibrate([200, 100, 200]);
   }
+  updateStatus();
 }
 
 // Reveal role
@@ -154,7 +156,53 @@ function logout() {
   updateRoleCard(false);
 }
 
-// Card flip on click
+// Poll server every 5 seconds to update player state
+async function pollPlayerStatus() {
+  if (!loggedInPlayer) return;
+
+  try {
+    const res = await fetch("/playerStatus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: loggedInPlayer.key }),
+    });
+
+    if (!res.ok) {
+      logout();
+      return;
+    }
+
+    const data = await res.json();
+
+    // Detect game reset (gameStarted false but previously true)
+    if (loggedInPlayer.gameStarted && !data.gameStarted) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      alert("Game has been reset by God! Your role is now hidden.");
+      updateStatus();
+      return;
+    }
+
+    // Detect game start notification (gameStarted true but previously false)
+    if (!loggedInPlayer.gameStarted && data.gameStarted) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      notifyGameStarted();
+      return;
+    }
+
+    // Update revealed state or role if changed
+    if (
+      loggedInPlayer.revealed !== data.revealed ||
+      loggedInPlayer.role !== data.role
+    ) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      updateStatus();
+    }
+  } catch {
+    // ignore errors silently
+  }
+}
+
+// Attach event listeners
 cardInner.addEventListener("click", () => {
   if (!loggedInPlayer || !loggedInPlayer.gameStarted) return;
   if (loggedInPlayer.revealed) {
@@ -164,8 +212,10 @@ cardInner.addEventListener("click", () => {
   }
 });
 
-// Button event listeners
 loginBtn.addEventListener("click", playerLogin);
 revealBtn.addEventListener("click", reveal);
 hideBtn.addEventListener("click", hide);
 logoutBtn.addEventListener("click", logout);
+
+// Start polling every 5 seconds
+setInterval(pollPlayerStatus, 5000);
