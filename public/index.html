@@ -7,16 +7,23 @@
 <body>
 
 <div id="loginBox">
-  <input id="key" placeholder="Enter Game Key">
-  <button onclick="login()">Login</button>
+  <h2>🎭 Join the Game</h2>
+  <input id="key" placeholder="Enter your secret key">
+  <button onclick="login()">Enter</button>
 </div>
 
 <div id="gameBox" style="display:none">
-  <h3 id="playerName"></h3>
-  <h3 id="status">⏳ Waiting...</h3>
+  <h3 id="greeting"></h3>
+  <p id="status"></p>
+
+  <img id="roleImg" width="150"
+       onerror="this.style.display='none'">
+
   <button onclick="toggle()">Reveal / Hide</button>
   <button onclick="logout()">Logout</button>
 </div>
+
+<audio id="startSound" src="sounds/start.mp3"></audio>
 
 <script src="player.js"></script>
 </body>
