@@ -6,6 +6,81 @@ app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
+
+const GOD_PASSWORD = "god123";
+
+function generateKey() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+/* ---------- GOD ---------- */
+app.post("/god/login", (req, res) => {
+  if (req.body.password !== GOD_PASSWORD)
+    return res.status(401).send("Invalid");
+  res.json({ success: true });
+});
+
+app.post("/addPlayer", (req, res) => {
+  if (!req.body.name) return res.status(400).send("Name required");
+
+  players.push({
+    name: req.body.name,
+    key: generateKey(),
+    role: "Villager"
+  });
+  res.json(players);
+});
+
+app.get("/players", (req, res) => res.json(players));
+
+app.post("/assignRole", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (p) p.role = req.body.role;
+  res.json(players);
+});
+
+app.post("/startGame", (req, res) => {
+  gameStarted = true;
+  res.json({ started: true });
+});
+
+app.post("/restartGame", (req, res) => {
+  gameStarted = false;
+  players.forEach(p => (p.role = "Villager"));
+  res.json({ restarted: true });
+});
+
+app.post("/resetPlayers", (req, res) => {
+  players = [];
+  gameStarted = false;
+  res.json({ reset: true });
+});
+
+/* ---------- PLAYER ---------- */
+app.post("/login", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (!p) return res.status(401).send("Invalid key");
+
+  res.json({
+    name: p.name,
+    role: p.role,
+    gameStarted
+  });
+});
+
+app.get("/status", (req, res) => {
+  res.json({ gameStarted });
+});
+
+app.listen(process.env.PORT || 3000);
+const express = require("express");
+const app = express();
+
+app.use(express.json());
+app.use(express.static("public"));
+
+let players = [];
+let gameStarted = false;
 let godLoggedIn = false;
 
 const GOD_PASSWORD = "god123";
