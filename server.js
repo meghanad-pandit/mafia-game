@@ -29,7 +29,8 @@ app.post("/addPlayer", (req, res) => {
     name,
     key,
     role: "Villager",
-    revealed: false
+    revealed: false,
+    killed: false  // <-- added killed flag
   });
 
   res.send(players);
@@ -54,14 +55,26 @@ app.post("/startGame", (req, res) => {
   res.send({ started: true });
 });
 
-// Reset game (roles back to Villager and revealed=false)
+// Reset game (roles back to Villager, revealed=false, killed=false)
 app.post("/resetGame", (req, res) => {
   gameStarted = false;
   players.forEach(p => {
     p.role = "Villager";
     p.revealed = false;
+    p.killed = false; // reset killed status
   });
   res.send({ reset: true });
+});
+
+// Kill player (mark killed = true)
+app.post("/killPlayer", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (p && !p.killed) {
+    p.killed = true;
+    res.send({ success: true });
+  } else {
+    res.status(404).send({ success: false, message: "Player not found or already killed" });
+  }
 });
 
 // Mark player revealed role
@@ -99,7 +112,7 @@ app.post("/playerStatus", (req, res) => {
   });
 });
 
-// Get all players and game state
+// Get all players and game state (includes killed flag)
 app.get("/players", (req, res) => {
   res.send({ players, gameStarted });
 });
