@@ -1,109 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>God Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>God Panel - Mafia Game</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #2c3e50;
-      color: white;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      margin: 10px;
+      background: #f4f6f8;
+    }
+    h2 {
+      text-align: center;
     }
     #godLogin, #godPanel {
-      max-width: 480px;
-      margin: 0 auto;
-      background: #34495e;
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
       padding: 20px;
-      border-radius: 12px;
-    }
-    input, button, select {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
       border-radius: 8px;
-      border: none;
+      box-shadow: 0 0 10px #ccc;
+    }
+    input[type=text], select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
       font-size: 16px;
     }
     button {
-      background-color: #e67e22;
+      padding: 10px 20px;
+      margin: 5px 2px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:disabled {
-      background: #7f8c8d;
+      background-color: #888;
       cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    #godError {
+      color: red;
+      text-align: center;
+      margin-top: 5px;
+      height: 18px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      max-height: 300px;
-      overflow-y: auto;
-      display: block;
+      margin-top: 15px;
+      font-size: 14px;
     }
     th, td {
-      padding: 10px;
-      border: 1px solid #ecf0f1;
-      text-align: left;
-      background: #34495e;
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
     }
     th {
-      background: #e67e22;
-      color: #2c3e50;
+      background-color: #007bff;
+      color: white;
       position: sticky;
       top: 0;
-      z-index: 10;
     }
-    select {
-      background: #ecf0f1;
-      color: #2c3e50;
+    tbody {
+      max-height: 300px;
+      display: block;
+      overflow-y: auto;
     }
-    button.deleteBtn {
-      background: #c0392b;
+    tbody tr {
+      display: table;
       width: 100%;
-      padding: 6px 0;
+      table-layout: fixed;
+    }
+    .deleteBtn {
+      background-color: #dc3545;
+      font-weight: bold;
+    }
+    .deleteBtn:hover {
+      background-color: #a71d2a;
+    }
+    #logoutBtn {
+      background-color: #6c757d;
+      float: right;
+      margin-bottom: 10px;
+    }
+    #logoutBtn:hover {
+      background-color: #4e555b;
     }
   </style>
 </head>
 <body>
 
-<h2>👑 God Panel</h2>
+  <div id="godLogin">
+    <h2>👑 God Panel Login</h2>
+    <input id="godKey" type="text" placeholder="Enter God Key" autocomplete="off" />
+    <button onclick="godLogin()">Login</button>
+    <div id="godError"></div>
+  </div>
 
-<div id="godLogin">
-  <input id="godKey" placeholder="Enter God Key" autocomplete="off">
-  <button onclick="godLogin()">Login</button>
-  <p id="godError"></p>
-</div>
+  <div id="godPanel" style="display:none;">
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+    <h2>👑 God Panel</h2>
 
-<div id="godPanel" style="display:none">
+    <input id="playerName" type="text" placeholder="Enter Player Name" autocomplete="off" />
+    <button onclick="addPlayer()">Add Player</button>
 
-  <input id="playerName" placeholder="Player Name" autocomplete="off">
-  <button onclick="addPlayer()">Add Player</button>
+    <button id="startBtn" onclick="startGame()">▶ Start Game</button>
+    <button onclick="resetGame()">🔄 Reset Game</button>
 
-  <br>
-
-  <button id="startBtn" onclick="startGame()">▶ Start Game</button>
-  <button onclick="resetGame()">🔄 Reset Game</button>
-  <button onclick="logout()">Logout</button>
-
-  <div style="max-height: 320px; overflow-y: auto; margin-top: 15px;">
     <table>
       <thead>
         <tr>
           <th>Name</th>
-          <th>Key</th>
+          <th>Game Key</th>
           <th>Role</th>
-          <th>Delete</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="playerTable"></tbody>
     </table>
   </div>
 
-</div>
-
-<script src="god.js"></script>
+  <script src="god.js"></script>
 </body>
 </html>
