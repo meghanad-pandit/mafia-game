@@ -75,12 +75,14 @@ async function loadPlayers() {
       <tr>
         <td>${p.name}</td>
         <td>${p.key}</td>
-        <td>${p.role}</td>
         <td>
           <select onchange="assignRole('${p.key}', this.value)">
-            ${["Villager","Mafia","Detective","Doctor"]
-              .map(r => `<option ${p.role===r?"selected":""}>${r}</option>`)
-              .join("")}
+            ${["Villager", "Mafia", "Detective", "Doctor"]
+              .map(role => `
+                <option value="${role}" ${p.role === role ? "selected" : ""}>
+                  ${role}
+                </option>
+              `).join("")}
           </select>
         </td>
         <td>
@@ -92,6 +94,7 @@ async function loadPlayers() {
     `;
   });
 }
+
 
 /* ---------- PLAYER ---------- */
 async function playerLogin() {
