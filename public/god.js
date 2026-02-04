@@ -217,3 +217,12 @@ async function resetGame() {
     alert("Error resetting game");
   }
 }
+
+function showCopyFeedback(element) {
+  const originalText = element.textContent;
+  element.textContent = "Copied!";
+  setTimeout(() => {
+    element.textContent = originalText;
+  }, 1500);
+}
+
