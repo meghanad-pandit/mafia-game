@@ -6,25 +6,24 @@
 </head>
 <body>
 
+<h2>🎭 Mafia Game</h2>
+
 <div id="loginBox">
-  <h2>🎭 Join the Game</h2>
-  <input id="key" placeholder="Enter your secret key">
-  <button onclick="login()">Enter</button>
+  <input id="name" placeholder="Name">
+  <input id="pin" placeholder="PIN">
+  <button onclick="login()">Login</button>
+  <p id="loginError"></p>
 </div>
 
 <div id="gameBox" style="display:none">
-  <h3 id="greeting"></h3>
-  <p id="status"></p>
+  <h3 id="playerName"></h3>
+  <p id="status">⏳ Waiting...</p>
 
-  <img id="roleImg" width="150"
-       onerror="this.style.display='none'">
-
-  <button onclick="toggle()">Reveal / Hide</button>
+  <button onclick="reveal()">Reveal</button>
+  <button onclick="hide()">Hide</button>
   <button onclick="logout()">Logout</button>
 </div>
 
-<audio id="startSound" src="sounds/start.mp3"></audio>
-
-<script src="player.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
