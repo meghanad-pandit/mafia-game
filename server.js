@@ -9,8 +9,6 @@ let gameStarted = false;
 
 const GOD_KEY = "1234";
 
-/* ---------- GOD ---------- */
-
 app.post("/god/login", (req, res) => {
   if (req.body.key !== GOD_KEY) {
     return res.status(401).send("Invalid");
@@ -59,15 +57,34 @@ app.post("/resetGame", (req, res) => {
   res.send({ reset: true });
 });
 
-/* ---------- PLAYER ---------- */
-
-app.post("/login", (req, res) => {
+app.post("/playerRevealed", (req, res) => {
   const p = players.find(x => x.key === req.body.key);
-  if (!p) return res.status(401).send("Invalid");
+  if (p) {
+    p.revealed = true;
+    res.send({ success: true });
+  } else {
+    res.status(404).send({ success: false });
+  }
+});
+
+app.post("/playerHideRole", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (p) {
+    p.revealed = false;
+    res.send({ success: true });
+  } else {
+    res.status(404).send({ success: false });
+  }
+});
+
+app.post("/playerStatus", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (!p) return res.status(404).send("Not found");
 
   res.send({
     name: p.name,
     role: p.role,
+    revealed: p.revealed,
     gameStarted
   });
 });
