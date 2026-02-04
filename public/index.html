@@ -3,31 +3,19 @@
 <head>
   <title>Mafia Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="login">
-  <h2>🎭 Join Game</h2>
+<div id="loginBox">
   <input id="key" placeholder="Enter Game Key">
   <button onclick="login()">Login</button>
 </div>
 
-<div id="game" class="hidden">
-  <h3 id="status">⏳ Waiting for God...</h3>
-
-  <div id="card" class="hidden">
-    <img id="roleImg" onerror="this.style.display='none'">
-    <h2 id="roleText">❓</h2>
-    <button onclick="toggleRole()">Reveal / Hide</button>
-  </div>
-
+<div id="gameBox" style="display:none">
+  <h3 id="status">⏳ Waiting...</h3>
+  <button onclick="toggle()">Reveal / Hide</button>
   <button onclick="logout()">Logout</button>
 </div>
-
-<audio id="startSound">
-  <source src="sounds/start.mp3" type="audio/mpeg">
-</audio>
 
 <script src="player.js"></script>
 </body>
