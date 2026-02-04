@@ -60,9 +60,12 @@ app.post("/startGame", (req, res) => {
 
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
-  players.forEach(p => (p.role = "Villager"));
-  res.json({ restarted: true });
+  players.forEach(p => {
+    p.role = "Villager";
+  });
+  res.json({ reset: true });
 });
+
 
 app.post("/resetPlayers", (req, res) => {
   players = [];
