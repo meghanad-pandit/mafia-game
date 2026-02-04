@@ -3,54 +3,30 @@
 <head>
   <title>Mafia Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      text-align: center;
-      background: #111;
-      color: #fff;
-    }
-    input, button {
-      padding: 12px;
-      margin: 8px 0;
-      width: 100%;
-      font-size: 16px;
-    }
-    .card {
-      background: #222;
-      padding: 20px;
-      border-radius: 15px;
-      animation: pop 0.4s ease;
-    }
-    img {
-      width: 120px;
-      margin-top: 10px;
-    }
-    @keyframes pop {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>🎭 Mafia Game</h2>
-
-<div id="loginBox">
-  <input id="name" placeholder="Your Name">
-  <input id="pin" placeholder="3-digit PIN">
+<div id="login">
+  <h2>🎭 Join Game</h2>
+  <input id="key" placeholder="Enter Game Key">
   <button onclick="login()">Login</button>
-  <p id="loginError" style="color:red"></p>
 </div>
 
-<div id="gameBox" style="display:none">
-  <h3 id="playerName"></h3>
-  <p id="status">⏳ Waiting for God...</p>
-  <button onclick="reveal()">Reveal / Hide</button>
+<div id="game" class="hidden">
+  <h2 id="status">⏳ Waiting for God...</h2>
+
+  <div id="card" class="hidden">
+    <img id="roleImg">
+    <h3 id="roleText"></h3>
+    <button onclick="toggleRole()">Reveal / Hide</button>
+  </div>
+
   <button onclick="logout()">Logout</button>
 </div>
 
-<script src="script.js"></script>
+<audio id="startSound" src="sounds/start.mp3"></audio>
+
+<script src="player.js"></script>
 </body>
 </html>
