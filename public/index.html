@@ -14,18 +14,20 @@
 </div>
 
 <div id="game" class="hidden">
-  <h2 id="status">⏳ Waiting for God...</h2>
+  <h3 id="status">⏳ Waiting for God...</h3>
 
   <div id="card" class="hidden">
-    <img id="roleImg">
-    <h3 id="roleText"></h3>
+    <img id="roleImg" onerror="this.style.display='none'">
+    <h2 id="roleText">❓</h2>
     <button onclick="toggleRole()">Reveal / Hide</button>
   </div>
 
   <button onclick="logout()">Logout</button>
 </div>
 
-<audio id="startSound" src="sounds/start.mp3"></audio>
+<audio id="startSound">
+  <source src="sounds/start.mp3" type="audio/mpeg">
+</audio>
 
 <script src="player.js"></script>
 </body>
