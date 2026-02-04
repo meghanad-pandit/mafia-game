@@ -7,25 +7,13 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
-const GOD_KEY = "1234";
-
-/* ---------------- GOD LOGIN ---------------- */
-
-app.post("/god/login", (req, res) => {
-  if (req.body.key !== GOD_KEY) {
-    return res.status(401).json({ error: "Invalid God Key" });
-  }
-  res.json({ success: true });
-});
-
-/* ---------------- HELPERS ---------------- */
-
+/* UTIL */
 function generateKey(name) {
   const rand = Math.floor(100 + Math.random() * 900);
-  return `${name}-${rand}`;
+  return `${name}_${rand}`;
 }
 
-/* ---------------- GOD ACTIONS ---------------- */
+/* GOD */
 
 app.post("/addPlayer", (req, res) => {
   const { name } = req.body;
@@ -43,9 +31,7 @@ app.post("/addPlayer", (req, res) => {
 });
 
 app.post("/assignRole", (req, res) => {
-  if (gameStarted) {
-    return res.status(403).json({ error: "Game already started. Roles are locked." });
-  }
+  if (gameStarted) return res.status(403).send("Game already started");
 
   const p = players.find(x => x.key === req.body.key);
   if (p) p.role = req.body.role;
@@ -55,29 +41,26 @@ app.post("/assignRole", (req, res) => {
 
 app.post("/startGame", (req, res) => {
   gameStarted = true;
-  res.json({ started: true });
+  res.json({ gameStarted });
 });
 
-app.post("/restartGame", (req, res) => {
+app.post("/resetGame", (req, res) => {
   gameStarted = false;
-  players.forEach(p => {
-    p.role = "Villager";
-  });
+  players.forEach(p => (p.role = "Villager"));
   res.json({ reset: true });
 });
 
-
-app.post("/resetPlayers", (req, res) => {
-  players = [];
-  gameStarted = false;
-  res.json({ reset: true });
+app.get("/players", (req, res) => {
+  res.json({ players, gameStarted });
 });
 
-/* ---------------- PLAYER LOGIN / SYNC ---------------- */
+/* PLAYER */
 
-app.post("/player/state", (req, res) => {
-  const p = players.find(x => x.key === req.body.key);
-  if (!p) return res.status(401).json({ error: "Invalid key" });
+app.post("/login", (req, res) => {
+  const { key } = req.body;
+  const p = players.find(x => x.key === key);
+
+  if (!p) return res.status(401).json({ error: "Invalid Key" });
 
   res.json({
     name: p.name,
@@ -85,8 +68,6 @@ app.post("/player/state", (req, res) => {
     gameStarted
   });
 });
-
-app.get("/players", (req, res) => res.json(players));
 
 app.listen(process.env.PORT || 3000, () =>
   console.log("Server running")
