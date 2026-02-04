@@ -8,25 +8,15 @@
 
 <h2>👑 God Panel</h2>
 
-<!-- GOD LOGIN -->
-<div id="godLoginBox">
-  <input id="godKey" placeholder="Enter God Key">
-  <button onclick="handleGodLogin()">Login</button>
-  <p id="godError"></p>
-</div>
+<input id="playerName" placeholder="Player Name">
+<button onclick="addPlayer()">Add Player</button>
 
-<!-- GOD PANEL -->
-<div id="godPanel" style="display:none">
+<br><br>
 
-  <input id="playerName" placeholder="Player Name">
-  <button onclick="addPlayer()">Add Player</button>
+<button id="startBtn" onclick="startGame()">▶ Start Game</button>
+<button onclick="resetGame()">♻ Reset</button>
 
-  <br><br>
-
-  <button id="startBtn" onclick="startGame()">Start Game</button>
-  <button onclick="resetGame()">♻️ Reset Game</button>
-  <button onclick="restartGame()">🔄 Restart Game</button>
-  <button onclick="logout()">🚪 Logout</button>
+<br><br>
 
 <table border="1" width="100%">
   <thead>
@@ -34,14 +24,10 @@
       <th>Name</th>
       <th>Game Key</th>
       <th>Role</th>
-      <th>Copy</th>
     </tr>
   </thead>
   <tbody id="playerTable"></tbody>
 </table>
-
-
-</div>
 
 <script src="script.js"></script>
 </body>
