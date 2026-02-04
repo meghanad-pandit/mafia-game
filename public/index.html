@@ -2,183 +2,184 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🎭 Mafia Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Mafia Game - Player</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #eef2f7;
-      margin: 0;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-    }
-    #container {
-      max-width: 400px;
-      width: 100%;
-      background: white;
+      max-width: 480px;
+      margin: auto;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #ccc;
+      background: #f0f2f5;
+      color: #222;
       text-align: center;
     }
     h2 {
-      margin-bottom: 15px;
+      margin-bottom: 1rem;
     }
-    input[type=text] {
+    #loginBox, #gameBox {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    input {
       width: 100%;
       padding: 12px;
-      margin: 10px 0 15px 0;
-      box-sizing: border-box;
-      border-radius: 6px;
+      font-size: 1rem;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
     button {
-      padding: 12px 25px;
-      font-size: 16px;
-      background-color: #007bff;
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      background-color: #4CAF50;
+      color: white;
       border: none;
       border-radius: 6px;
-      color: white;
-      font-weight: bold;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      margin: 5px;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #45a049;
     }
-    #error {
+    #loginError {
       color: red;
-      height: 20px;
-      margin-top: -10px;
+      margin-top: 8px;
+      min-height: 20px;
     }
     #status {
-      margin: 15px 0;
-      font-weight: bold;
-      font-size: 18px;
-      min-height: 40px;
+      font-size: 1.2rem;
+      margin: 20px 0;
+      min-height: 50px;
+      color: #444;
     }
-    #roleCard {
-      margin-top: 20px;
-      perspective: 1000px;
+    #playerRoleCard {
+      margin: 20px auto;
       width: 250px;
       height: 350px;
-      margin-left: auto;
-      margin-right: auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
       position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 20px;
     }
-    .card-inner {
+    #cardInner {
       position: relative;
       width: 100%;
       height: 100%;
       text-align: center;
       transition: transform 0.8s;
       transform-style: preserve-3d;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      border-radius: 12px;
-      background: white;
-      cursor: pointer;
+      border-radius: 20px;
     }
-    .card-inner.flipped {
+    #cardInner.flipped {
       transform: rotateY(180deg);
     }
-    .card-front, .card-back {
+    .cardFace {
       position: absolute;
       width: 100%;
       height: 100%;
-      border-radius: 12px;
       backface-visibility: hidden;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 10px;
-      box-sizing: border-box;
+      font-size: 1.4rem;
+      font-weight: bold;
+      padding: 20px;
     }
-    .card-front {
-      background: #007bff;
+    .cardFront {
+      background: #4CAF50;
       color: white;
-      font-size: 24px;
-      font-weight: bold;
     }
-    .card-back {
-      background: #f0f0f0;
-      color: #333;
+    .cardBack {
+      background: #fff;
+      color: #444;
       transform: rotateY(180deg);
-      flex-direction: column;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
     }
-    .role-img {
-      max-width: 140px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    .roleImage {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 15px;
+      border-radius: 50%;
+      object-fit: contain;
+      border: 3px solid white;
+      background: white;
     }
-    #revealBtn, #hideBtn {
-      padding: 10px 20px;
-      font-weight: bold;
+    #revealBtn, #hideBtn, #logoutBtn {
+      width: 100%;
+      padding: 12px;
+      margin: 5px 0;
+      font-size: 1.1rem;
       border-radius: 6px;
       border: none;
-      margin: 10px 5px 0 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
     }
     #revealBtn {
-      background-color: #28a745;
+      background-color: #007BFF;
       color: white;
-      cursor: pointer;
+    }
+    #revealBtn:hover {
+      background-color: #0056b3;
     }
     #hideBtn {
-      background-color: #dc3545;
-      color: white;
-      cursor: pointer;
-      display: none;
+      background-color: #ffc107;
+      color: #333;
+    }
+    #hideBtn:hover {
+      background-color: #e0a800;
     }
     #logoutBtn {
-      background-color: #6c757d;
+      background-color: #dc3545;
       color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 20px;
-      margin-top: 15px;
-      cursor: pointer;
-      width: 100%;
     }
     #logoutBtn:hover {
-      background-color: #495057;
+      background-color: #a71d2a;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <h2>🎭 Mafia Game</h2>
 
-    <div id="loginBox">
-      <input id="playerKey" type="text" placeholder="Enter Game Key" autocomplete="off" />
-      <button onclick="playerLogin()">Login</button>
-      <div id="error"></div>
-    </div>
+  <h2>🎭 Mafia Game</h2>
 
-    <div id="gameBox" style="display:none;">
-      <h3 id="playerName"></h3>
-      <div id="status">⏳ Waiting for game to start...</div>
+  <div id="loginBox">
+    <input type="text" id="playerKey" placeholder="Enter Your Game Key" autocomplete="off" />
+    <button id="loginBtn">Login</button>
+    <p id="loginError"></p>
+  </div>
 
-      <div id="roleCard" style="display:none;">
-        <div class="card-inner" id="cardInner" onclick="toggleCard()">
-          <div class="card-front">Role</div>
-          <div class="card-back">
-            <img id="roleImg" class="role-img" src="" alt="Role Image" />
-            <div id="roleText"></div>
-          </div>
+  <div id="gameBox" style="display:none;">
+    <h3 id="playerName"></h3>
+    <div id="playerRoleCard" title="Tap card to flip">
+      <div id="cardInner">
+        <div class="cardFace cardFront">
+          <p>Tap to Reveal Role</p>
+          <img src="images/question.png" alt="?" style="width:80px; margin-top:20px;" />
+        </div>
+        <div class="cardFace cardBack">
+          <img id="roleImage" class="roleImage" src="" alt="Role Image" />
+          <div id="roleText"></div>
         </div>
       </div>
-
-      <button id="revealBtn" onclick="reveal()">Reveal Role</button>
-      <button id="hideBtn" onclick="hide()" style="display:none;">Hide Role</button>
-      <button id="logoutBtn" onclick="logout()">Logout</button>
     </div>
-
-    <audio id="startSound" src="sounds/start.mp3" preload="auto"></audio>
+    <div id="status">⏳ Waiting for game to start...</div>
+    <button id="revealBtn" style="display:none;">Reveal Role</button>
+    <button id="hideBtn" style="display:none;">Hide Role</button>
+    <button id="logoutBtn">Logout</button>
   </div>
+
+  <audio id="startSound" src="sounds/start.mp3" preload="auto"></audio>
 
   <script src="player.js"></script>
 </body>
