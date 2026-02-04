@@ -49,13 +49,18 @@ async function assignRole(key, role) {
 async function startGame() {
   await fetch("/startGame", { method: "POST" });
   alert("🎮 Game Started!");
+  gameStarted = true;
+  loadPlayers();
 }
+
 
 async function resetGame() {
   await fetch("/restartGame", { method: "POST" });
   alert("♻️ Game Reset!");
-  loadPlayers(); // refresh table with default roles
+  gameStarted = false;
+  loadPlayers();
 }
+
 
 
 async function resetPlayers() {
@@ -67,32 +72,29 @@ async function loadPlayers() {
   const res = await fetch("/players");
   const players = await res.json();
 
-  const table = document.getElementById("table");
+  const table = document.getElementById("playerTable");
   table.innerHTML = "";
 
   players.forEach(p => {
+    const disabled = gameStarted ? "disabled" : "";
+
     table.innerHTML += `
       <tr>
         <td>${p.name}</td>
         <td>${p.key}</td>
         <td>
-          <select onchange="assignRole('${p.key}', this.value)">
-            ${["Villager", "Mafia", "Detective", "Doctor"]
-              .map(role => `
-                <option value="${role}" ${p.role === role ? "selected" : ""}>
-                  ${role}
-                </option>
-              `).join("")}
+          <select onchange="changeRole('${p.key}', this.value)" ${disabled}>
+            ${["Villager", "Mafia", "Doctor", "Detective"]
+              .map(r => `<option ${p.role === r ? "selected" : ""}>${r}</option>`)
+              .join("")}
           </select>
-        </td>
-        <td>
-          <button onclick="navigator.clipboard.writeText('${p.key}')">
-            Copy
-          </button>
         </td>
       </tr>
     `;
   });
+
+  // Disable Start button if game started
+  document.getElementById("startBtn").disabled = gameStarted;
 }
 
 
