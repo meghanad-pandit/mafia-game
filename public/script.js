@@ -69,21 +69,31 @@ async function resetPlayers() {
 }
 
 async function loadPlayers() {
-  const res = await fetch("/players");
-  const players = await res.json();
-
   const table = document.getElementById("playerTable");
+
+  // ✅ Guard protection
+  if (!table) {
+    console.warn("playerTable not found. Skipping loadPlayers()");
+    return;
+  }
+
+  const res = await fetch("/players");
+  const data = await res.json();
+
   table.innerHTML = "";
 
-  players.forEach(p => {
-    const disabled = gameStarted ? "disabled" : "";
+  data.forEach(p => {
+    const roleLocked = gameStarted ? "disabled" : "";
 
     table.innerHTML += `
       <tr>
         <td>${p.name}</td>
-        <td>${p.key}</td>
         <td>
-          <select onchange="changeRole('${p.key}', this.value)" ${disabled}>
+          ${p.key}
+          <button onclick="copyKey('${p.name}', '${p.key}')">📋</button>
+        </td>
+        <td>
+          <select onchange="changeRole('${p.key}', this.value)" ${roleLocked}>
             ${["Villager", "Mafia", "Doctor", "Detective"]
               .map(r => `<option ${p.role === r ? "selected" : ""}>${r}</option>`)
               .join("")}
@@ -94,8 +104,10 @@ async function loadPlayers() {
   });
 
   // Disable Start button if game started
-  document.getElementById("startBtn").disabled = gameStarted;
+  const startBtn = document.getElementById("startBtn");
+  if (startBtn) startBtn.disabled = gameStarted;
 }
+
 
 
 /* ---------- PLAYER ---------- */
@@ -166,3 +178,9 @@ function updateStatus(data) {
 function logout() {
   location.reload();
 }
+
+function copyKey(name, key) {
+  navigator.clipboard.writeText(key);
+  alert(`✅ ${name}'s game key copied`);
+}
+
