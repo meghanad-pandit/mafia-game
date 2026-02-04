@@ -45,6 +45,9 @@
     }
     button {
       cursor: pointer;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
       font-weight: bold;
       border-radius: 4px;
       transition: background-color 0.3s ease;
@@ -54,46 +57,25 @@
       cursor: not-allowed;
     }
     button:hover:not(:disabled) {
-      filter: brightness(0.9);
+      background-color: #45a049;
     }
     .delete-btn {
       background-color: #e74c3c;
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      padding: 6px 10px;
-      font-size: 1.1rem;
+      padding: 4px 8px;
     }
     .delete-btn:hover {
       background-color: #c0392b;
     }
     .role-select {
       width: 100%;
-      padding: 6px;
-      font-size: 1rem;
     }
-    #deleteAllBtn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: #e74c3c;
-      font-weight: bold;
-      padding: 0;
-    }
-    #deleteAllBtn:hover {
-      filter: brightness(0.8);
-    }
-    td.key-cell {
+    .key-cell {
       cursor: pointer;
       color: #3498db;
       font-weight: bold;
       user-select: none;
     }
-    td.key-cell:hover {
+    .key-cell:hover {
       text-decoration: underline;
     }
   </style>
@@ -124,7 +106,7 @@
         <th>Key</th>
         <th>Role</th>
         <th>
-          <button id="deleteAllBtn" title="Delete All Players">🗑️ Delete All</button>
+          <button id="deleteAllBtn" class="delete-btn" title="Delete All Players">🗑️</button>
         </th>
       </tr>
     </thead>
