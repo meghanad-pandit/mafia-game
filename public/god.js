@@ -26,6 +26,7 @@ window.godLogin = async function() {
     // Hide login, show admin panel
     document.getElementById("godLoginDiv").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
+
     loadPlayers();
 
   } catch (e) {
@@ -56,18 +57,29 @@ async function loadPlayers() {
       nameTd.textContent = p.name;
       tr.appendChild(nameTd);
 
-      // Key
+      // Key + Copy inline
       const keyTd = document.createElement("td");
-      keyTd.textContent = p.key;
+      keyTd.style.display = "flex";
+      keyTd.style.justifyContent = "space-between";
+      keyTd.style.alignItems = "center";
+
+      const keySpan = document.createElement("span");
+      keySpan.textContent = p.key;
+      keyTd.appendChild(keySpan);
+
+      const copyBtn = document.createElement("button");
+      copyBtn.textContent = "Copy";
+      copyBtn.classList.add("copy-btn");
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(p.key);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+      };
+      keyTd.appendChild(copyBtn);
       tr.appendChild(keyTd);
 
-      // Role
+      // Role dropdown (with change role)
       const roleTd = document.createElement("td");
-      roleTd.textContent = p.role;
-      tr.appendChild(roleTd);
-
-      // Role Select
-      const selectTd = document.createElement("td");
       const roleSelect = document.createElement("select");
       roleSelect.classList.add("role-select");
       ["Villager", "Mafia", "Detective", "Doctor"].forEach(roleOption => {
@@ -77,30 +89,18 @@ async function loadPlayers() {
         if (p.role === roleOption) opt.selected = true;
         roleSelect.appendChild(opt);
       });
-      roleSelect.disabled = gameStarted; // disable change if game started
+      roleSelect.disabled = gameStarted; // disable if game started
       roleSelect.addEventListener("change", async (e) => {
         await assignRole(p.key, e.target.value);
       });
-      selectTd.appendChild(roleSelect);
-      tr.appendChild(selectTd);
+      roleTd.appendChild(roleSelect);
+      tr.appendChild(roleTd);
 
-      // Copy button
-      const copyTd = document.createElement("td");
-      const copyBtn = document.createElement("button");
-      copyBtn.textContent = "Copy Key";
-      copyBtn.classList.add("copy-btn");
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(p.key);
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => copyBtn.textContent = "Copy Key", 1500);
-      };
-      copyTd.appendChild(copyBtn);
-      tr.appendChild(copyTd);
-
-      // Delete button
+      // Delete trash icon button
       const deleteTd = document.createElement("td");
       const delBtn = document.createElement("button");
-      delBtn.textContent = "Delete";
+      delBtn.innerHTML = "🗑️"; // trash icon emoji
+      delBtn.title = `Delete player "${p.name}"`;
       delBtn.classList.add("delete-btn");
       delBtn.onclick = async () => {
         if (confirm(`Delete player "${p.name}"?`)) {
@@ -168,6 +168,30 @@ async function deletePlayer(key) {
   }
 }
 
+async function deleteAllPlayers() {
+  if (!confirm("Are you sure you want to delete ALL players?")) return;
+
+  try {
+    const res = await fetch("/players");
+    if (!res.ok) throw new Error("Failed to load players");
+
+    const data = await res.json();
+    const players = data.players;
+
+    for (const p of players) {
+      await fetch("/deletePlayer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: p.key }),
+      });
+    }
+
+    loadPlayers();
+  } catch {
+    alert("Error deleting all players");
+  }
+}
+
 async function startGame() {
   try {
     const res = await fetch("/startGame", { method: "POST" });
@@ -195,3 +219,6 @@ async function resetGame() {
     alert("Error resetting game");
   }
 }
+
+// Attach event listener to delete all button
+document.getElementById("deleteAllBtn").addEventListener("click", deleteAllPlayers);
