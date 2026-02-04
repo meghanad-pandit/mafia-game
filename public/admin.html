@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>God Panel - Mafia Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 480px;
+      margin: auto;
+      background: #f4f4f9;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #godLoginDiv, #adminPanel {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    button {
+      cursor: pointer;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #45a049;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+      padding: 4px 8px;
+    }
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    .role-select {
+      width: 100%;
+    }
+    .key-cell {
+      cursor: pointer;
+      color: #3498db;
+      font-weight: bold;
+      user-select: none;
+    }
+    .key-cell:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<h2>👑 God Panel Login</h2>
+
+<div id="godLoginDiv">
+  <input id="godKey" placeholder="Enter God Key" type="password" autocomplete="off" />
+  <button onclick="godLogin()">Login</button>
+  <p id="godLoginError" style="color:red;"></p>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <h2>Players Management</h2>
+  
+  <input id="playerName" placeholder="Enter Player Name" autocomplete="off" />
+  <button onclick="addPlayer()">Add Player</button>
+  
+  <button id="startGameBtn" onclick="startGame()">▶ Start Game</button>
+  <button onclick="resetGame()">❌ Reset Game</button>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Key</th>
+        <th>Role</th>
+        <th>
+          <button id="deleteAllBtn" class="delete-btn" title="Delete All Players">🗑️</button>
+        </th>
+      </tr>
+    </thead>
+    <tbody id="playersTableBody"></tbody>
+  </table>
+</div>
+
+<script src="god.js"></script>
+
+</body>
+</html>
