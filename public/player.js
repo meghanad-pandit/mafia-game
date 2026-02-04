@@ -1,6 +1,14 @@
 let role = "";
 let revealed = false;
 let started = false;
+let notified = false;
+
+const waitingMessages = [
+  "🕵️ God is choosing chaos...",
+  "😈 Mafia is sharpening knives...",
+  "🤫 Shhh... secrets everywhere!",
+  "🎲 Destiny is loading..."
+];
 
 async function login() {
   const res = await fetch("/login", {
@@ -12,38 +20,54 @@ async function login() {
   if (!res.ok) return alert("Invalid key");
 
   const data = await res.json();
+
   role = data.role;
   started = data.gameStarted;
 
-  document.getElementById("playerName").innerText =
-    "👤 Player: " + data.name;
-
+  greeting.innerText = `Hey ${data.name} 😎`;
   loginBox.style.display = "none";
   gameBox.style.display = "block";
 
-  if (!started) wait();
-  else status.innerText = "🎉 Game Started!";
+  if (started) onGameStart();
+  else waitForGame();
+}
+
+function onGameStart() {
+  status.innerText = "🎉 Game Started! Tap Reveal!";
+  if (!notified) {
+    try { startSound.play(); } catch {}
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+    notified = true;
+  }
 }
 
 function toggle() {
   if (!started) return;
 
   revealed = !revealed;
-  status.innerText = revealed
-    ? `🎭 Your role: ${role}`
-    : "🤫 Role hidden";
+
+  if (revealed) {
+    status.innerText = `🎭 You are a ${role}`;
+    roleImg.src = `images/${role.toLowerCase()}.png`;
+    roleImg.style.display = "block";
+  } else {
+    status.innerText = "🤫 Role hidden. Act cool.";
+    roleImg.style.display = "none";
+  }
 }
 
-function wait() {
-  status.innerText = "⏳ Waiting for God...";
+function waitForGame() {
+  status.innerText =
+    waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
+
   setInterval(async () => {
     const res = await fetch("/status");
     const s = await res.json();
     if (s.gameStarted) {
       started = true;
-      status.innerText = "🎉 Game Started!";
+      onGameStart();
     }
-  }, 2000);
+  }, 2500);
 }
 
 function logout() {
