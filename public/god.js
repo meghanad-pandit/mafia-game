@@ -26,7 +26,6 @@ window.godLogin = async function() {
     // Hide login, show admin panel
     document.getElementById("godLoginDiv").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
-
     loadPlayers();
 
   } catch (e) {
