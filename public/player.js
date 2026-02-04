@@ -1,7 +1,8 @@
 let player = null;
 let playerKey = null;
-let notified = false;
 let pollInterval = null;
+let lastGameVersion = null;
+let notified = false;
 
 /* ---------- LOGIN ---------- */
 
@@ -20,21 +21,20 @@ async function login() {
   }
 
   player = await res.json();
+  lastGameVersion = player.gameVersion;
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("gameBox").style.display = "block";
   document.getElementById("playerName").innerText =
     `Hi ${player.name} 👋`;
 
-  updateStatus();
-
-  // ✅ Start polling server
-  pollInterval = setInterval(checkGameStatus, 2000);
+  updateWaitingUI();
+  pollInterval = setInterval(pollServer, 2000);
 }
 
 /* ---------- POLLING ---------- */
 
-async function checkGameStatus() {
+async function pollServer() {
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -45,27 +45,33 @@ async function checkGameStatus() {
 
   const latest = await res.json();
 
-  // Detect game start
+  // RESET OR NEW ROUND DETECTED
+  if (latest.gameVersion !== lastGameVersion) {
+    hide(); // 👈 hide card
+    notified = false;
+    lastGameVersion = latest.gameVersion;
+  }
+
+  // GAME STARTED
   if (!player.gameStarted && latest.gameStarted) {
     notifyGameStarted();
   }
 
   player = latest;
-  updateStatus();
+
+  player.gameStarted ? updateStartedUI() : updateWaitingUI();
 }
 
-/* ---------- UI ---------- */
+/* ---------- UI STATES ---------- */
 
-function updateStatus() {
-  const status = document.getElementById("status");
+function updateWaitingUI() {
+  document.getElementById("status").innerText =
+    `😴 Chill ${player.name}… God is cooking the game 🍳`;
+}
 
-  if (!player.gameStarted) {
-    status.innerText =
-      `😴 Relax ${player.name}, God is planning something...`;
-  } else {
-    status.innerText =
-      `🎉 Game started! Tap Reveal to know your fate`;
-  }
+function updateStartedUI() {
+  document.getElementById("status").innerText =
+    `🎉 Game started! Tap Reveal to know your destiny`;
 }
 
 /* ---------- REVEAL ---------- */
@@ -79,13 +85,16 @@ function reveal() {
   img.src = `images/${player.role.toLowerCase()}.png`;
   img.onerror = () => (img.style.display = "none");
 
+  document.getElementById("roleCard").classList.add("flip");
   document.getElementById("roleCard").style.display = "block";
 }
 
 /* ---------- HIDE ---------- */
 
 function hide() {
-  document.getElementById("roleCard").style.display = "none";
+  const card = document.getElementById("roleCard");
+  card.classList.remove("flip");
+  card.style.display = "none";
 }
 
 /* ---------- SOUND + VIBRATION ---------- */
@@ -94,15 +103,13 @@ function notifyGameStarted() {
   if (notified) return;
   notified = true;
 
-  // 🔔 Sound (safe if missing)
   try {
     const audio = new Audio("sounds/start.mp3");
     audio.play().catch(() => {});
   } catch {}
 
-  // 📳 Vibration (mobile only)
   if (navigator.vibrate) {
-    navigator.vibrate([200, 100, 200]);
+    navigator.vibrate([300, 150, 300]);
   }
 }
 
