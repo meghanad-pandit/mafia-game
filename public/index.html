@@ -9,20 +9,26 @@
 <h2>🎭 Mafia Game</h2>
 
 <div id="loginBox">
-  <input id="playerKeyInput" placeholder="Enter Game Key">
-  <button onclick="playerLogin()">Login</button>
-  <p id="loginError"></p>
+  <input id="gameKey" placeholder="Enter Game Key">
+  <button onclick="login()">Login</button>
+  <p id="error"></p>
 </div>
 
 <div id="gameBox" style="display:none">
   <h3 id="playerName"></h3>
-  <p id="status"></p>
+
+  <div id="roleCard" style="display:none">
+    <img id="roleImg" width="120" onerror="this.style.display='none'">
+    <h3 id="roleText"></h3>
+  </div>
+
+  <p id="status">⏳ Waiting for God...</p>
 
   <button onclick="reveal()">Reveal</button>
   <button onclick="hide()">Hide</button>
   <button onclick="logout()">Logout</button>
 </div>
 
-<script src="script.js"></script>
+<script src="player.js"></script>
 </body>
 </html>
