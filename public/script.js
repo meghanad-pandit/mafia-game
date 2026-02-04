@@ -4,6 +4,35 @@ let loggedInPlayer = null;
 let isGod = false;
 
 /**************** PLAYER SECTION ****************/
+/**************** GOD LOGIN ****************/
+
+async function godLogin() {
+  const keyInput = document.getElementById("godKey");
+  const errorBox = document.getElementById("godError");
+
+  if (!keyInput || !keyInput.value.trim()) {
+    if (errorBox) errorBox.innerText = "❌ Enter God Key";
+    return;
+  }
+
+  try {
+    const res = await fetch("/god/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: keyInput.value.trim() })
+    });
+
+    if (!res.ok) throw new Error("Invalid key");
+
+    // success
+    document.getElementById("godLogin").style.display = "none";
+    document.getElementById("godPanel").style.display = "block";
+
+    loadPlayers();
+  } catch (e) {
+    if (errorBox) errorBox.innerText = "❌ Invalid God Key";
+  }
+}
 
 async function login() {
   const name = document.getElementById("name")?.value.trim();
