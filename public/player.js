@@ -1,121 +1,141 @@
-let player = null;
-let playerKey = null;
-let pollInterval = null;
-let lastGameVersion = null;
-let notified = false;
+let loggedInPlayer = null;
 
-/* ---------- LOGIN ---------- */
+/* ================== PLAYER ================== */
 
-async function login() {
-  playerKey = document.getElementById("gameKey").value.trim();
+async function playerLogin() {
+  const key = document.getElementById("playerKey").value.trim();
+  const errorEl = document.getElementById("error");
+  errorEl.innerText = "";
 
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: playerKey })
-  });
-
-  if (!res.ok) {
-    document.getElementById("error").innerText = "❌ Invalid Game Key";
+  if (!key) {
+    errorEl.innerText = "Please enter your Game Key";
     return;
   }
 
-  player = await res.json();
-  lastGameVersion = player.gameVersion;
-
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("gameBox").style.display = "block";
-  document.getElementById("playerName").innerText =
-    `Hi ${player.name} 👋`;
-
-  updateWaitingUI();
-  pollInterval = setInterval(pollServer, 2000);
-}
-
-/* ---------- POLLING ---------- */
-
-async function pollServer() {
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: playerKey })
+    body: JSON.stringify({ key })
+  });
+
+  if (!res.ok) {
+    errorEl.innerText = "❌ Invalid Game Key";
+    return;
+  }
+
+  loggedInPlayer = await res.json();
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("gameBox").style.display = "block";
+  document.getElementById("playerName").innerText = `Hi ${loggedInPlayer.name} 👋`;
+
+  updateGameStatus();
+
+  // Poll every 5 sec for game status updates
+  setInterval(updateGameStatus, 5000);
+}
+
+async function updateGameStatus() {
+  if (!loggedInPlayer) return;
+
+  const res = await fetch("/playerStatus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  if (data.gameStarted && !data.revealed) {
+    notifyStart();
+    setStatus("🎉 Game started! Click Reveal to see your role.");
+  } else if (!data.gameStarted) {
+    setStatus("⏳ Waiting for game to start... God is cooking something 🔥");
+    hideRoleCard();
+  } else if (data.revealed) {
+    showRoleCard(data.role);
+  }
+}
+
+function setStatus(msg) {
+  const status = document.getElementById("status");
+  status.innerText = msg;
+}
+
+function notifyStart() {
+  const audio = document.getElementById("startSound");
+  audio.play().catch(() => {});
+  if (navigator.vibrate) navigator.vibrate(300);
+}
+
+async function reveal() {
+  if (!loggedInPlayer) return;
+  if (!loggedInPlayer.gameStarted) return;
+
+  await fetch("/playerRevealed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+
+  const res = await fetch("/playerStatus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
   });
 
   if (!res.ok) return;
 
-  const latest = await res.json();
+  const data = await res.json();
 
-  // RESET OR NEW ROUND DETECTED
-  if (latest.gameVersion !== lastGameVersion) {
-    hide(); // 👈 hide card
-    notified = false;
-    lastGameVersion = latest.gameVersion;
-  }
+  showRoleCard(data.role);
+  setStatus("🎭 Here's your role. Be careful!");
 
-  // GAME STARTED
-  if (!player.gameStarted && latest.gameStarted) {
-    notifyGameStarted();
-  }
-
-  player = latest;
-
-  player.gameStarted ? updateStartedUI() : updateWaitingUI();
+  document.getElementById("revealBtn").style.display = "none";
+  document.getElementById("hideBtn").style.display = "inline-block";
 }
 
-/* ---------- UI STATES ---------- */
+async function hide() {
+  if (!loggedInPlayer) return;
 
-function updateWaitingUI() {
-  document.getElementById("status").innerText =
-    `😴 Chill ${player.name}… God is cooking the game 🍳`;
+  await fetch("/playerHideRole", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+
+  setStatus("🔒 Role hidden. Stay calm 😎");
+  hideRoleCard();
+
+  document.getElementById("revealBtn").style.display = "inline-block";
+  document.getElementById("hideBtn").style.display = "none";
 }
 
-function updateStartedUI() {
-  document.getElementById("status").innerText =
-    `🎉 Game started! Tap Reveal to know your destiny`;
+function showRoleCard(role) {
+  const roleCard = document.getElementById("roleCard");
+  const roleText = document.getElementById("roleText");
+  const roleImg = document.getElementById("roleImg");
+
+  roleText.innerText = role;
+
+  const imgMap = {
+    "Mafia": "images/mafia.png",
+    "Villager": "images/villager.png",
+    "Doctor": "images/doctor.png",
+    "Detective": "images/detective.png"
+  };
+
+  roleImg.src = imgMap[role] || "";
+  roleImg.alt = role;
+
+  roleCard.style.display = "block";
 }
 
-/* ---------- REVEAL ---------- */
-
-function reveal() {
-  if (!player.gameStarted) return;
-
-  document.getElementById("roleText").innerText = player.role;
-
-  const img = document.getElementById("roleImg");
-  img.src = `images/${player.role.toLowerCase()}.png`;
-  img.onerror = () => (img.style.display = "none");
-
-  document.getElementById("roleCard").classList.add("flip");
-  document.getElementById("roleCard").style.display = "block";
+function hideRoleCard() {
+  document.getElementById("roleCard").style.display = "none";
 }
-
-/* ---------- HIDE ---------- */
-
-function hide() {
-  const card = document.getElementById("roleCard");
-  card.classList.remove("flip");
-  card.style.display = "none";
-}
-
-/* ---------- SOUND + VIBRATION ---------- */
-
-function notifyGameStarted() {
-  if (notified) return;
-  notified = true;
-
-  try {
-    const audio = new Audio("sounds/start.mp3");
-    audio.play().catch(() => {});
-  } catch {}
-
-  if (navigator.vibrate) {
-    navigator.vibrate([300, 150, 300]);
-  }
-}
-
-/* ---------- LOGOUT ---------- */
 
 function logout() {
-  clearInterval(pollInterval);
   location.reload();
 }
