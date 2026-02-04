@@ -10,59 +10,64 @@ let godLoggedIn = false;
 
 const GOD_PASSWORD = "god123";
 
-/* UTIL */
 function generateKey() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  return Math.random().toString(36).substr(2, 6).toUpperCase();
 }
 
-/* GOD AUTH */
+/* -------- GOD AUTH -------- */
 app.post("/god/login", (req, res) => {
   if (req.body.password !== GOD_PASSWORD)
     return res.status(401).send("Invalid password");
 
   if (godLoggedIn)
-    return res.status(403).send("Already logged in");
+    return res.status(403).send("God already logged in");
 
   godLoggedIn = true;
-  res.send({ success: true });
+  res.json({ success: true });
 });
 
 app.post("/god/logout", (req, res) => {
   godLoggedIn = false;
-  res.send({ logout: true });
+  res.json({ logout: true });
 });
 
-/* GOD ACTIONS */
+/* -------- GOD ACTIONS -------- */
 app.post("/addPlayer", (req, res) => {
-  const key = generateKey();
-  players.push({ key, role: "Villager" });
-  res.send(players);
+  players.push({
+    key: generateKey(),
+    role: "Villager"
+  });
+  res.json(players);
+});
+
+app.get("/players", (req, res) => {
+  res.json(players);
 });
 
 app.post("/assignRole", (req, res) => {
   const p = players.find(x => x.key === req.body.key);
   if (p) p.role = req.body.role;
-  res.send(players);
+  res.json(players);
 });
 
 app.post("/startGame", (req, res) => {
   gameStarted = true;
-  res.send({ started: true });
+  res.json({ started: true });
 });
 
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
   players.forEach(p => (p.role = "Villager"));
-  res.send({ restarted: true });
+  res.json({ restarted: true });
 });
 
 app.post("/resetPlayers", (req, res) => {
   players = [];
   gameStarted = false;
-  res.send({ reset: true });
+  res.json({ reset: true });
 });
 
-/* PLAYER */
+/* -------- PLAYER -------- */
 app.post("/login", (req, res) => {
   const p = players.find(x => x.key === req.body.key);
   if (!p) return res.status(401).send("Invalid key");
@@ -74,7 +79,9 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/status", (req, res) => {
-  res.send({ gameStarted });
+  res.json({ gameStarted });
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () =>
+  console.log("Server running")
+);
