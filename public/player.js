@@ -1,61 +1,43 @@
 let role = "";
 let revealed = false;
-let notified = false;
+let started = false;
 
 async function login() {
-  const key = document.getElementById("key").value;
-
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key })
+    body: JSON.stringify({ key: key.value })
   });
 
-  if (!res.ok) return alert("Invalid Key");
+  if (!res.ok) return alert("Invalid key");
 
   const data = await res.json();
   role = data.role;
+  started = data.gameStarted;
 
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("game").classList.remove("hidden");
+  loginBox.style.display = "none";
+  gameBox.style.display = "block";
 
-  if (data.gameStarted) gameStarted();
-  else waitForStart();
+  if (!started) wait();
+  else status.innerText = "🎉 Game Started!";
 }
 
-function gameStarted() {
-  document.getElementById("status").innerText =
-    "🎉 Game Started! Ready to reveal?";
+function toggle() {
+  if (!started) return;
 
-  document.getElementById("card").classList.remove("hidden");
-
-  if (!notified) {
-    try {
-      document.getElementById("startSound").play();
-    } catch {}
-    notified = true;
-  }
-}
-
-function toggleRole() {
   revealed = !revealed;
-
-  document.getElementById("roleText").innerText =
-    revealed ? role : "❓";
-
-  document.getElementById("roleImg").src =
-    revealed ? `images/${role.toLowerCase()}.png` : "";
+  status.innerText = revealed ? `🎭 Your role: ${role}` : "🤫 Role hidden";
 }
 
-function waitForStart() {
-  document.getElementById("status").innerText =
-    "🕵️ Waiting... God is planning something evil 😈";
-
+function wait() {
+  status.innerText = "⏳ Waiting for God...";
   setInterval(async () => {
     const res = await fetch("/status");
-    const data = await res.json();
-
-    if (data.gameStarted) gameStarted();
+    const s = await res.json();
+    if (s.gameStarted) {
+      started = true;
+      status.innerText = "🎉 Game Started!";
+    }
   }, 2000);
 }
 
