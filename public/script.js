@@ -7,8 +7,8 @@ async function godLogin() {
 
   if (!res.ok) return alert("Login failed");
 
-  login.classList.add("hidden");
-  panel.classList.remove("hidden");
+  loginBox.style.display = "none";
+  panel.style.display = "block";
   loadPlayers();
 }
 
@@ -24,19 +24,21 @@ async function loadPlayers() {
         <td>${p.role}</td>
         <td>
           <select onchange="assign('${p.key}', this.value)">
-            <option>Villager</option>
-            <option>Mafia</option>
-            <option>Detective</option>
+            <option ${p.role==="Villager"?"selected":""}>Villager</option>
+            <option ${p.role==="Mafia"?"selected":""}>Mafia</option>
+            <option ${p.role==="Detective"?"selected":""}>Detective</option>
           </select>
         </td>
-        <td><button onclick="copyKey('${p.key}')">📋</button></td>
+        <td>
+          <button onclick="copyKey('${p.key}')">Copy</button>
+        </td>
       </tr>`;
   });
 }
 
 function copyKey(key) {
   navigator.clipboard.writeText(key);
-  alert("Login key copied");
+  alert("Key copied");
 }
 
 async function assign(key, role) {
