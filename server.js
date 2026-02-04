@@ -7,35 +7,43 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
-const GOD_KEY = "1234"; // change later to OTP
+const GOD_KEY = "1234";
 
 /* ---------------- GOD LOGIN ---------------- */
 
 app.post("/god/login", (req, res) => {
-  const { key } = req.body;
-  if (key !== GOD_KEY) {
+  if (req.body.key !== GOD_KEY) {
     return res.status(401).json({ error: "Invalid God Key" });
   }
   res.json({ success: true });
 });
 
+/* ---------------- HELPERS ---------------- */
+
+function generateKey(name) {
+  const rand = Math.floor(100 + Math.random() * 900);
+  return `${name}-${rand}`;
+}
+
 /* ---------------- GOD ACTIONS ---------------- */
 
 app.post("/addPlayer", (req, res) => {
-  const { name, pin } = req.body;
-  if (!name || !pin) return res.status(400).send("Invalid data");
+  const { name } = req.body;
+  if (!name) return res.status(400).send("Name required");
+
+  const key = generateKey(name);
 
   players.push({
     name,
-    pin,
-    role: "Villager" // default role
+    key,
+    role: "Villager"
   });
 
   res.json(players);
 });
 
 app.post("/assignRole", (req, res) => {
-  const p = players.find(x => x.name === req.body.name);
+  const p = players.find(x => x.key === req.body.key);
   if (p) p.role = req.body.role;
   res.json(players);
 });
@@ -57,13 +65,11 @@ app.post("/resetPlayers", (req, res) => {
   res.json({ reset: true });
 });
 
-/* ---------------- PLAYER LOGIN ---------------- */
+/* ---------------- PLAYER LOGIN / SYNC ---------------- */
 
-app.post("/login", (req, res) => {
-  const { name, pin } = req.body;
-
-  const p = players.find(x => x.name === name && x.pin === pin);
-  if (!p) return res.status(401).json({ error: "Invalid credentials" });
+app.post("/player/state", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (!p) return res.status(401).json({ error: "Invalid key" });
 
   res.json({
     name: p.name,
@@ -72,9 +78,7 @@ app.post("/login", (req, res) => {
   });
 });
 
-app.get("/players", (req, res) => {
-  res.json(players);
-});
+app.get("/players", (req, res) => res.json(players));
 
 app.listen(process.env.PORT || 3000, () =>
   console.log("Server running")
