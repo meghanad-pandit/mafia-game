@@ -1,35 +1,24 @@
 body {
-  background: #0f0f0f;
-  color: #fff;
-  font-family: system-ui;
+  font-family: Arial;
+  padding: 10px;
   text-align: center;
-}
-
-input, button {
-  padding: 12px;
-  margin: 6px;
-  width: 80%;
-  font-size: 16px;
 }
 
 .hidden {
   display: none;
 }
 
-.card {
-  margin: 20px auto;
-  width: 80%;
-  padding: 20px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #222, #000);
-  transform: scale(0);
-  transition: 0.4s ease;
+input, button, select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
 }
 
-.card.show {
-  transform: scale(1);
+table {
+  width: 100%;
+  margin-top: 10px;
 }
 
-.card img {
-  width: 120px;
+img {
+  max-width: 150px;
 }
