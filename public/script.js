@@ -1,9 +1,16 @@
 let loggedInPlayer = null;
 
-/* ---------- PLAYER ---------- */
+/* ================== PLAYER ================== */
 
 async function playerLogin() {
   const key = document.getElementById("playerKey").value.trim();
+  const errorEl = document.getElementById("error");
+  errorEl.innerText = "";
+
+  if (!key) {
+    errorEl.innerText = "Please enter your Game Key";
+    return;
+  }
 
   const res = await fetch("/login", {
     method: "POST",
@@ -12,7 +19,7 @@ async function playerLogin() {
   });
 
   if (!res.ok) {
-    document.getElementById("error").innerText = "❌ Invalid Key";
+    errorEl.innerText = "❌ Invalid Game Key";
     return;
   }
 
@@ -20,21 +27,40 @@ async function playerLogin() {
 
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("gameBox").style.display = "block";
-  document.getElementById("playerName").innerText =
-    `Hi ${loggedInPlayer.name} 👋`;
+  document.getElementById("playerName").innerText = `Hi ${loggedInPlayer.name} 👋`;
 
-  checkGame();
+  updateGameStatus();
+
+  // Poll every 5 sec for game status updates
+  setInterval(updateGameStatus, 5000);
 }
 
-function checkGame() {
-  if (loggedInPlayer.gameStarted) {
+async function updateGameStatus() {
+  if (!loggedInPlayer) return;
+
+  const res = await fetch("/playerStatus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  if (data.gameStarted && !data.revealed) {
     notifyStart();
-    document.getElementById("status").innerText =
-      "🎉 Game Started! Click Reveal";
-  } else {
-    document.getElementById("status").innerText =
-      "⏳ Waiting... God is planning something 😈";
+    setStatus("🎉 Game started! Click Reveal to see your role.");
+  } else if (!data.gameStarted) {
+    setStatus("⏳ Waiting for game to start... God is cooking something 🔥");
+    hideRoleCard();
+  } else if (data.revealed) {
+    showRoleCard(data.role);
   }
+}
+
+function setStatus(msg) {
+  const status = document.getElementById("status");
+  status.innerText = msg;
 }
 
 function notifyStart() {
@@ -43,25 +69,89 @@ function notifyStart() {
   if (navigator.vibrate) navigator.vibrate(300);
 }
 
-function reveal() {
+async function reveal() {
+  if (!loggedInPlayer) return;
   if (!loggedInPlayer.gameStarted) return;
-  document.getElementById("status").innerHTML =
-    `🎭 Your Role: <b>${loggedInPlayer.role}</b>`;
+
+  await fetch("/playerRevealed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+
+  const res = await fetch("/playerStatus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  showRoleCard(data.role);
+  setStatus("🎭 Here's your role. Be careful!");
+
+  document.getElementById("revealBtn").style.display = "none";
+  document.getElementById("hideBtn").style.display = "inline-block";
 }
 
-function hide() {
-  document.getElementById("status").innerText =
-    "🔒 Role hidden. Stay calm 😎";
+async function hide() {
+  if (!loggedInPlayer) return;
+
+  await fetch("/playerHideRole", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: loggedInPlayer.key })
+  });
+
+  setStatus("🔒 Role hidden. Stay calm 😎");
+  hideRoleCard();
+
+  document.getElementById("revealBtn").style.display = "inline-block";
+  document.getElementById("hideBtn").style.display = "none";
+}
+
+function showRoleCard(role) {
+  const roleCard = document.getElementById("roleCard");
+  const roleText = document.getElementById("roleText");
+  const roleImg = document.getElementById("roleImg");
+
+  roleText.innerText = role;
+
+  // Set image source depending on role
+  const imgMap = {
+    "Mafia": "images/mafia.png",
+    "Villager": "images/villager.png",
+    "Doctor": "images/doctor.png",
+    "Detective": "images/detective.png"
+  };
+
+  roleImg.src = imgMap[role] || "";
+  roleImg.alt = role;
+
+  roleCard.style.display = "block";
+}
+
+function hideRoleCard() {
+  document.getElementById("roleCard").style.display = "none";
 }
 
 function logout() {
   location.reload();
 }
 
-/* ---------- GOD ---------- */
+/* ================== GOD ================== */
 
 async function godLogin() {
   const key = document.getElementById("godKey").value.trim();
+  const godError = document.getElementById("godError");
+  godError.innerText = "";
+
+  if (!key) {
+    godError.innerText = "Please enter the God Key";
+    return;
+  }
 
   const res = await fetch("/god/login", {
     method: "POST",
@@ -70,30 +160,40 @@ async function godLogin() {
   });
 
   if (!res.ok) {
-    document.getElementById("godError").innerText = "❌ Invalid God Key";
+    godError.innerText = "❌ Invalid God Key";
     return;
   }
 
   document.getElementById("godLogin").style.display = "none";
   document.getElementById("godPanel").style.display = "block";
+
   loadPlayers();
 }
 
 async function addPlayer() {
+  const playerNameInput = document.getElementById("playerName");
+  const name = playerNameInput.value.trim();
+  if (!name) return alert("Please enter player name");
+
   await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: playerName.value })
+    body: JSON.stringify({ name })
   });
+
+  playerNameInput.value = "";
   loadPlayers();
 }
 
 async function deletePlayer(key) {
+  if (!confirm("Are you sure you want to delete this player?")) return;
+
   await fetch("/deletePlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key })
   });
+
   loadPlayers();
 }
 
@@ -103,27 +203,33 @@ async function changeRole(key, role) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key, role })
   });
+
+  loadPlayers();
 }
 
 async function startGame() {
   await fetch("/startGame", { method: "POST" });
+
   document.getElementById("startBtn").disabled = true;
   loadPlayers();
 }
 
 async function resetGame() {
+  if (!confirm("Are you sure you want to reset the game? All roles will reset.")) return;
+
   await fetch("/resetGame", { method: "POST" });
+
   document.getElementById("startBtn").disabled = false;
   loadPlayers();
 }
 
 async function loadPlayers() {
   const res = await fetch("/players");
+  if (!res.ok) return;
+
   const data = await res.json();
 
   const table = document.getElementById("playerTable");
-  if (!table) return;
-
   table.innerHTML = "";
 
   data.players.forEach(p => {
@@ -143,9 +249,15 @@ async function loadPlayers() {
           </select>
         </td>
         <td>
-          <button onclick="deletePlayer('${p.key}')">❌</button>
+          <button class="deleteBtn" onclick="deletePlayer('${p.key}')">❌</button>
         </td>
       </tr>
     `;
   });
+
+  if (data.gameStarted) {
+    document.getElementById("startBtn").disabled = true;
+  } else {
+    document.getElementById("startBtn").disabled = false;
+  }
 }
