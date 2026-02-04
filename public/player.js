@@ -1,73 +1,45 @@
-let role = "";
-let revealed = false;
-let started = false;
-let notified = false;
-
-const waitingMessages = [
-  "🕵️ God is choosing chaos...",
-  "😈 Mafia is sharpening knives...",
-  "🤫 Shhh... secrets everywhere!",
-  "🎲 Destiny is loading..."
-];
+let player = null;
 
 async function login() {
+  const key = document.getElementById("gameKey").value.trim();
+
   const res = await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: key.value })
+    body: JSON.stringify({ key })
   });
 
-  if (!res.ok) return alert("Invalid key");
-
-  const data = await res.json();
-
-  role = data.role;
-  started = data.gameStarted;
-
-  greeting.innerText = `Hey ${data.name} 😎`;
-  loginBox.style.display = "none";
-  gameBox.style.display = "block";
-
-  if (started) onGameStart();
-  else waitForGame();
-}
-
-function onGameStart() {
-  status.innerText = "🎉 Game Started! Tap Reveal!";
-  if (!notified) {
-    try { startSound.play(); } catch {}
-    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
-    notified = true;
+  if (!res.ok) {
+    document.getElementById("error").innerText = "❌ Invalid Key";
+    return;
   }
+
+  player = await res.json();
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("gameBox").style.display = "block";
+  document.getElementById("playerName").innerText = `Hi ${player.name} 👋`;
+
+  updateStatus();
 }
 
-function toggle() {
-  if (!started) return;
-
-  revealed = !revealed;
-
-  if (revealed) {
-    status.innerText = `🎭 You are a ${role}`;
-    roleImg.src = `images/${role.toLowerCase()}.png`;
-    roleImg.style.display = "block";
-  } else {
-    status.innerText = "🤫 Role hidden. Act cool.";
-    roleImg.style.display = "none";
-  }
+function updateStatus() {
+  document.getElementById("status").innerText =
+    player.gameStarted
+      ? "🎉 Game started! Reveal your role"
+      : "😴 Waiting for God to start...";
 }
 
-function waitForGame() {
-  status.innerText =
-    waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
+function reveal() {
+  if (!player.gameStarted) return;
 
-  setInterval(async () => {
-    const res = await fetch("/status");
-    const s = await res.json();
-    if (s.gameStarted) {
-      started = true;
-      onGameStart();
-    }
-  }, 2500);
+  document.getElementById("roleText").innerText = player.role;
+  document.getElementById("roleImg").src = `images/${player.role.toLowerCase()}.png`;
+  document.getElementById("roleCard").style.display = "block";
+}
+
+function hide() {
+  document.getElementById("roleCard").style.display = "none";
 }
 
 function logout() {
