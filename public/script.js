@@ -51,10 +51,12 @@ async function startGame() {
   alert("🎮 Game Started!");
 }
 
-async function restartGame() {
+async function resetGame() {
   await fetch("/restartGame", { method: "POST" });
-  alert("🔄 Game Restarted!");
+  alert("♻️ Game Reset!");
+  loadPlayers(); // refresh table with default roles
 }
+
 
 async function resetPlayers() {
   await fetch("/resetPlayers", { method: "POST" });
