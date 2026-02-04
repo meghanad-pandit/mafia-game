@@ -1,64 +1,79 @@
 const express = require("express");
-const cors = require("cors");
 const app = express();
 
-app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
+
 const GOD_KEY = "1234";
 
-function generateKey(name) {
-  return name.toLowerCase().replace(/\s/g, "") + "-" + Math.floor(100 + Math.random() * 900);
-}
-
 /* ---------- GOD ---------- */
+
 app.post("/god/login", (req, res) => {
-  if (req.body.key === GOD_KEY) return res.json({ success: true });
-  res.status(401).json({ success: false });
+  if (req.body.key !== GOD_KEY) {
+    return res.status(401).send("Invalid");
+  }
+  res.send({ success: true });
+});
+
+app.post("/addPlayer", (req, res) => {
+  const name = req.body.name?.trim();
+  if (!name) return res.status(400).send("Invalid");
+
+  const key = name + "-" + Math.floor(100 + Math.random() * 900);
+
+  players.push({
+    name,
+    key,
+    role: "Villager",
+    revealed: false
+  });
+
+  res.send(players);
+});
+
+app.post("/deletePlayer", (req, res) => {
+  players = players.filter(p => p.key !== req.body.key);
+  res.send(players);
+});
+
+app.post("/assignRole", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (p) p.role = req.body.role;
+  res.send(players);
+});
+
+app.post("/startGame", (req, res) => {
+  gameStarted = true;
+  res.send({ started: true });
+});
+
+app.post("/resetGame", (req, res) => {
+  gameStarted = false;
+  players.forEach(p => {
+    p.role = "Villager";
+    p.revealed = false;
+  });
+  res.send({ reset: true });
 });
 
 /* ---------- PLAYER ---------- */
-app.post("/player/add", (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({});
 
-  const key = generateKey(name);
-  players.push({ name, key, role: "villager", revealed: false });
-  res.json({ name, key });
-});
-
-app.post("/player/login", (req, res) => {
-  const player = players.find(p => p.key === req.body.key);
-  if (!player) return res.status(401).json({});
-  res.json(player);
-});
-
-/* ---------- GAME ---------- */
-app.get("/players", (req, res) => res.json(players));
-
-app.post("/game/start", (req, res) => {
-  gameStarted = true;
-  res.json({ success: true });
-});
-
-app.post("/game/reset", (req, res) => {
-  gameStarted = false;
-  players = [];
-  res.json({ success: true });
-});
-
-app.post("/player/delete", (req, res) => {
-  players = players.filter(p => p.key !== req.body.key);
-  res.json({ success: true });
-});
-
-app.post("/player/reveal", (req, res) => {
+app.post("/login", (req, res) => {
   const p = players.find(x => x.key === req.body.key);
-  if (p) p.revealed = !p.revealed;
-  res.json(p);
+  if (!p) return res.status(401).send("Invalid");
+
+  res.send({
+    name: p.name,
+    role: p.role,
+    gameStarted
+  });
 });
 
-app.listen(3000, () => console.log("✅ Server running"));
+app.get("/players", (req, res) => {
+  res.send({ players, gameStarted });
+});
+
+app.listen(process.env.PORT || 3000);
