@@ -1,75 +1,64 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
-let gameVersion = 0; // 👈 NEW
+const GOD_KEY = "1234";
 
 function generateKey(name) {
-  const rand = Math.floor(100 + Math.random() * 900);
-  return `${name}_${rand}`;
+  return name.toLowerCase().replace(/\s/g, "") + "-" + Math.floor(100 + Math.random() * 900);
 }
 
-/* GOD */
+/* ---------- GOD ---------- */
+app.post("/god/login", (req, res) => {
+  if (req.body.key === GOD_KEY) return res.json({ success: true });
+  res.status(401).json({ success: false });
+});
 
-app.post("/addPlayer", (req, res) => {
+/* ---------- PLAYER ---------- */
+app.post("/player/add", (req, res) => {
   const { name } = req.body;
-  if (!name) return res.status(400).send("Name required");
+  if (!name) return res.status(400).json({});
 
-  players.push({
-    name,
-    key: generateKey(name),
-    role: "Villager"
-  });
-
-  res.json({ players, gameStarted, gameVersion });
+  const key = generateKey(name);
+  players.push({ name, key, role: "villager", revealed: false });
+  res.json({ name, key });
 });
 
-app.post("/assignRole", (req, res) => {
-  if (gameStarted) return res.status(403).send("Game started");
-
-  const p = players.find(x => x.key === req.body.key);
-  if (p) p.role = req.body.role;
-
-  res.json(players);
+app.post("/player/login", (req, res) => {
+  const player = players.find(p => p.key === req.body.key);
+  if (!player) return res.status(401).json({});
+  res.json(player);
 });
 
-app.post("/startGame", (req, res) => {
+/* ---------- GAME ---------- */
+app.get("/players", (req, res) => res.json(players));
+
+app.post("/game/start", (req, res) => {
   gameStarted = true;
-  gameVersion++; // 👈 NEW ROUND
-  res.json({ gameStarted, gameVersion });
+  res.json({ success: true });
 });
 
-app.post("/resetGame", (req, res) => {
+app.post("/game/reset", (req, res) => {
   gameStarted = false;
-  gameVersion++; // 👈 RESET EVENT
-  players.forEach(p => (p.role = "Villager"));
-  res.json({ reset: true, gameVersion });
+  players = [];
+  res.json({ success: true });
 });
 
-app.get("/players", (req, res) => {
-  res.json({ players, gameStarted, gameVersion });
+app.post("/player/delete", (req, res) => {
+  players = players.filter(p => p.key !== req.body.key);
+  res.json({ success: true });
 });
 
-/* PLAYER */
-
-app.post("/login", (req, res) => {
-  const { key } = req.body;
-  const p = players.find(x => x.key === key);
-
-  if (!p) return res.status(401).json({ error: "Invalid Key" });
-
-  res.json({
-    name: p.name,
-    role: p.role,
-    gameStarted,
-    gameVersion
-  });
+app.post("/player/reveal", (req, res) => {
+  const p = players.find(x => x.key === req.body.key);
+  if (p) p.revealed = !p.revealed;
+  res.json(p);
 });
 
-app.listen(process.env.PORT || 3000, () =>
-  console.log("✅ Server running")
-);
+app.listen(3000, () => console.log("✅ Server running"));
