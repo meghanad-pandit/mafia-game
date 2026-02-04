@@ -7,162 +7,83 @@ app.use(express.static("public"));
 let players = [];
 let gameStarted = false;
 
-const GOD_PASSWORD = "god123";
+/* ---------------- UTIL ---------------- */
 
 function generateKey() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/* ---------- GOD ---------- */
-app.post("/god/login", (req, res) => {
-  if (req.body.password !== GOD_PASSWORD)
-    return res.status(401).send("Invalid");
-  res.json({ success: true });
-});
+/* ---------------- GOD ACTIONS ---------------- */
 
+// Add Player
 app.post("/addPlayer", (req, res) => {
-  if (!req.body.name) return res.status(400).send("Name required");
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: "Name required" });
+
+  const key = generateKey();
 
   players.push({
-    name: req.body.name,
-    key: generateKey(),
+    name,
+    key,
     role: "Villager"
   });
+
   res.json(players);
 });
 
-app.get("/players", (req, res) => res.json(players));
-
-app.post("/assignRole", (req, res) => {
-  const p = players.find(x => x.key === req.body.key);
-  if (p) p.role = req.body.role;
-  res.json(players);
-});
-
+// Start Game
 app.post("/startGame", (req, res) => {
   gameStarted = true;
   res.json({ started: true });
 });
 
+// Restart Game (clear roles)
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
-  players.forEach(p => (p.role = "Villager"));
+  players.forEach(p => p.role = "Villager");
   res.json({ restarted: true });
 });
 
+// Reset Everything
 app.post("/resetPlayers", (req, res) => {
   players = [];
   gameStarted = false;
   res.json({ reset: true });
 });
 
-/* ---------- PLAYER ---------- */
-app.post("/login", (req, res) => {
-  const p = players.find(x => x.key === req.body.key);
-  if (!p) return res.status(401).send("Invalid key");
-
-  res.json({
-    name: p.name,
-    role: p.role,
-    gameStarted
-  });
-});
-
-app.get("/status", (req, res) => {
-  res.json({ gameStarted });
-});
-
-app.listen(process.env.PORT || 3000);
-const express = require("express");
-const app = express();
-
-app.use(express.json());
-app.use(express.static("public"));
-
-let players = [];
-let gameStarted = false;
-let godLoggedIn = false;
-
-const GOD_PASSWORD = "god123";
-
-function generateKey() {
-  return Math.random().toString(36).substr(2, 6).toUpperCase();
-}
-
-/* ---------- GOD AUTH ---------- */
-app.post("/god/login", (req, res) => {
-  if (req.body.password !== GOD_PASSWORD)
-    return res.status(401).send("Invalid password");
-
-  if (godLoggedIn)
-    return res.status(403).send("God already logged in");
-
-  godLoggedIn = true;
-  res.json({ success: true });
-});
-
-app.post("/god/logout", (req, res) => {
-  godLoggedIn = false;
-  res.json({ logout: true });
-});
-
-/* ---------- GOD ACTIONS ---------- */
-app.post("/addPlayer", (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).send("Name required");
-
-  players.push({
-    name,
-    key: generateKey(),
-    role: "Villager"
-  });
-
+// Assign Role (manual / god)
+app.post("/assignRole", (req, res) => {
+  const { key, role } = req.body;
+  const p = players.find(x => x.key === key);
+  if (p) p.role = role;
   res.json(players);
 });
 
+// Get Players
 app.get("/players", (req, res) => {
   res.json(players);
 });
 
-app.post("/assignRole", (req, res) => {
-  const p = players.find(x => x.key === req.body.key);
-  if (p) p.role = req.body.role;
-  res.json(players);
-});
+/* ---------------- PLAYER LOGIN ---------------- */
 
-app.post("/startGame", (req, res) => {
-  gameStarted = true;
-  res.json({ started: true });
-});
-
-app.post("/restartGame", (req, res) => {
-  gameStarted = false;
-  players.forEach(p => (p.role = "Villager"));
-  res.json({ restarted: true });
-});
-
-app.post("/resetPlayers", (req, res) => {
-  players = [];
-  gameStarted = false;
-  res.json({ reset: true });
-});
-
-/* ---------- PLAYER ---------- */
 app.post("/login", (req, res) => {
-  const p = players.find(x => x.key === req.body.key);
-  if (!p) return res.status(401).send("Invalid key");
+  const { key } = req.body;
+  const p = players.find(x => x.key === key);
+
+  if (!p) {
+    return res.status(401).json({ error: "Invalid key" });
+  }
 
   res.json({
     name: p.name,
-    role: p.role,
+    role: gameStarted ? p.role : null,
     gameStarted
   });
 });
 
-app.get("/status", (req, res) => {
-  res.json({ gameStarted });
-});
+/* ---------------- SERVER ---------------- */
 
-app.listen(process.env.PORT || 3000, () =>
-  console.log("Server running")
-);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Mafia game running on port", PORT);
+});
