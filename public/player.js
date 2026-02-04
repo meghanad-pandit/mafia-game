@@ -1,159 +1,232 @@
-const godKeyInput = document.getElementById('godKeyInput');
-const godLoginBtn = document.getElementById('godLoginBtn');
-const loginError = document.getElementById('loginError');
-const adminControls = document.getElementById('adminControls');
-const playersTableBody = document.getElementById('playersTableBody');
+let loggedInPlayer = null;
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const revealBtn = document.getElementById("revealBtn");
+const hideBtn = document.getElementById("hideBtn");
+const statusEl = document.getElementById("status");
+const playerNameEl = document.getElementById("playerName");
+const loginError = document.getElementById("loginError");
+const loginBox = document.getElementById("loginBox");
+const gameBox = document.getElementById("gameBox");
+const cardInner = document.getElementById("cardInner");
+const roleText = document.getElementById("roleText");
+const roleImage = document.getElementById("roleImage");
+const startSound = document.getElementById("startSound");
+const notification = document.getElementById("notification");
 
-const addPlayerBtn = document.getElementById('addPlayerBtn');
-const startGameBtn = document.getElementById('startGameBtn');
-const resetGameBtn = document.getElementById('resetGameBtn');
 
-let players = [];
-let gameStarted = false;
+const roleImages = {
+  Villager: "images/villager.png",
+  Mafia: "images/mafia.png",
+  Doctor: "images/doctor.png",
+  Detective: "images/detective.png",
+};
 
-godLoginBtn.onclick = async () => {
-  const key = godKeyInput.value.trim();
+// Login player using game key
+async function playerLogin() {
+  const key = document.getElementById("playerKey").value.trim();
   loginError.textContent = "";
+
   if (!key) {
-    loginError.textContent = "Please enter the God key";
+    loginError.textContent = "Please enter your game key";
     return;
   }
+
   try {
-    const res = await fetch('/god/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key })
+    const res = await fetch("/playerStatus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key }),
     });
+
     if (!res.ok) {
-      loginError.textContent = "❌ Invalid God Key";
+      loginError.textContent = "❌ Invalid Key";
       return;
     }
-    adminControls.style.display = 'block';
-    godLoginBtn.disabled = true;
-    godKeyInput.disabled = true;
-    loadPlayers();
+
+    const data = await res.json();
+
+    loggedInPlayer = {
+      key,
+      name: data.name,
+      role: data.role,
+      revealed: data.revealed,
+      gameStarted: data.gameStarted,
+    };
+
+    showGameBox();
+
+    // Play sound and update UI if game started
+    if (loggedInPlayer.gameStarted) {
+      notifyGameStarted();
+    }
   } catch {
     loginError.textContent = "Error connecting to server";
   }
-};
+}
 
-async function loadPlayers() {
-  try {
-    const res = await fetch('/players');
-    const data = await res.json();
-    players = data.players || [];
-    gameStarted = data.gameStarted || false;
+function showGameBox() {
+  loginBox.style.display = "none";
+  gameBox.style.display = "block";
+  playerNameEl.textContent = `Hi, ${loggedInPlayer.name}!`;
+  statusEl.textContent = "⏳ Waiting for game to start...";
+  updateRoleCard(false);
+  revealBtn.style.display = "none";
+  hideBtn.style.display = "none";
+}
 
-    startGameBtn.disabled = gameStarted;
-
-    playersTableBody.innerHTML = '';
-
-    players.forEach(p => {
-      const tr = document.createElement('tr');
-
-      // Name
-      const nameTd = document.createElement('td');
-      nameTd.textContent = p.name;
-      tr.appendChild(nameTd);
-
-      // Key with copy on click
-      const keyTd = document.createElement('td');
-      keyTd.textContent = p.key;
-      keyTd.classList.add('keyCell');
-      keyTd.title = 'Click to copy key';
-      keyTd.onclick = () => {
-        navigator.clipboard.writeText(p.key).then(() => {
-          keyTd.classList.add('copied');
-          setTimeout(() => keyTd.classList.remove('copied'), 1500);
-        });
-      };
-      tr.appendChild(keyTd);
-
-      // Role select or text
-      const roleTd = document.createElement('td');
-      if (gameStarted) {
-        roleTd.textContent = p.role;
-      } else {
-        const select = document.createElement('select');
-        select.className = 'roleSelect';
-        ['Villager', 'Mafia', 'Detective', 'Doctor'].forEach(roleOption => {
-          const option = document.createElement('option');
-          option.value = roleOption;
-          option.textContent = roleOption;
-          if (p.role === roleOption) option.selected = true;
-          select.appendChild(option);
-        });
-        select.onchange = async () => {
-          await fetch('/assignRole', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: p.key, role: select.value })
-          });
-          loadPlayers();
-        };
-        roleTd.appendChild(select);
-      }
-      tr.appendChild(roleTd);
-
-      // Delete with trash icon
-      const delTd = document.createElement('td');
-      const delBtn = document.createElement('button');
-      delBtn.className = 'deleteBtn';
-      delBtn.title = 'Delete Player';
-      delBtn.innerHTML = '&#128465;'; // trash icon
-      delBtn.onclick = async () => {
-        if (!confirm(`Delete player "${p.name}"?`)) return;
-        await fetch('/deletePlayer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: p.key })
-        });
-        loadPlayers();
-      };
-      delTd.appendChild(delBtn);
-      tr.appendChild(delTd);
-
-      playersTableBody.appendChild(tr);
-    });
-  } catch {
-    // silently fail or show a message if desired
+function updateRoleCard(showRole) {
+  if (showRole) {
+    roleText.textContent = loggedInPlayer.role;
+    roleImage.src = roleImages[loggedInPlayer.role] || "";
+    cardInner.classList.add("flipped");
+  } else {
+    roleText.textContent = "";
+    roleImage.src = "";
+    cardInner.classList.remove("flipped");
   }
 }
 
-addPlayerBtn.onclick = async () => {
-  const name = prompt("Enter player name:");
-  if (!name || !name.trim()) return;
+function updateStatus() {
+  if (!loggedInPlayer.gameStarted) {
+    statusEl.textContent = `⏳ Waiting for game to start...`;
+    revealBtn.style.display = "none";
+    hideBtn.style.display = "none";
+    updateRoleCard(false);
+    return;
+  }
+
+  statusEl.textContent = `🎭 Game started! You can reveal your role.`;
+  if (loggedInPlayer.revealed) {
+    updateRoleCard(true);
+    revealBtn.style.display = "none";
+    hideBtn.style.display = "inline-block";
+  } else {
+    updateRoleCard(false);
+    revealBtn.style.display = "inline-block";
+    hideBtn.style.display = "none";
+  }
+}
+
+// Play sound and vibrate on game start notification
+function notifyGameStarted() {
+  startSound.play().catch(() => {});
+  if ("vibrate" in navigator) {
+    navigator.vibrate([200, 100, 200]);
+  }
+  updateStatus();
+}
+
+// Reveal role
+async function reveal() {
+  if (!loggedInPlayer.gameStarted) return;
   try {
-    await fetch('/addPlayer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim() })
+    const res = await fetch("/playerRevealed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: loggedInPlayer.key }),
     });
-    loadPlayers();
-  } catch {
-    alert("Failed to add player");
-  }
-};
+    if (res.ok) {
+      loggedInPlayer.revealed = true;
+      updateStatus();
+    }
+  } catch {}
+}
 
-startGameBtn.onclick = async () => {
+// Hide role
+async function hide() {
   try {
-    await fetch('/startGame', { method: 'POST' });
-    gameStarted = true;
-    startGameBtn.disabled = true;
-    loadPlayers();
-  } catch {
-    alert("Failed to start game");
-  }
-};
+    const res = await fetch("/playerHideRole", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: loggedInPlayer.key }),
+    });
+    if (res.ok) {
+      loggedInPlayer.revealed = false;
+      updateStatus();
+    }
+  } catch {}
+}
 
-resetGameBtn.onclick = async () => {
-  if (!confirm("Are you sure you want to reset the game and delete all players?")) return;
+// Logout
+function logout() {
+  loggedInPlayer = null;
+  loginBox.style.display = "block";
+  gameBox.style.display = "none";
+  document.getElementById("playerKey").value = "";
+  loginError.textContent = "";
+  updateRoleCard(false);
+}
+
+function showNotification(message, duration = 3000) {
+  notification.textContent = message;
+  notification.style.display = "block";
+
+  setTimeout(() => {
+    notification.style.display = "none";
+  }, duration);
+}
+
+// Poll server every 5 seconds to update player state
+async function pollPlayerStatus() {
+  if (!loggedInPlayer) return;
+
   try {
-    await fetch('/resetGame', { method: 'POST' });
-    gameStarted = false;
-    startGameBtn.disabled = false;
-    loadPlayers();
+    const res = await fetch("/playerStatus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: loggedInPlayer.key }),
+    });
+
+    if (!res.ok) {
+      logout();
+      return;
+    }
+
+    const data = await res.json();
+
+    // Detect game reset (gameStarted false but previously true)
+    if (loggedInPlayer.gameStarted && !data.gameStarted) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      showNotification("Game has been reset by God! Your role is now hidden.");
+      updateStatus();
+      return;
+    }
+
+    // Detect game start notification (gameStarted true but previously false)
+    if (!loggedInPlayer.gameStarted && data.gameStarted) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      notifyGameStarted();
+      return;
+    }
+
+    // Update revealed state or role if changed
+    if (
+      loggedInPlayer.revealed !== data.revealed ||
+      loggedInPlayer.role !== data.role
+    ) {
+      loggedInPlayer = { ...loggedInPlayer, ...data };
+      updateStatus();
+    }
   } catch {
-    alert("Failed to reset game");
+    // ignore errors silently
   }
-};
+}
+
+// Attach event listeners
+cardInner.addEventListener("click", () => {
+  if (!loggedInPlayer || !loggedInPlayer.gameStarted) return;
+  if (loggedInPlayer.revealed) {
+    hide();
+  } else {
+    reveal();
+  }
+});
+
+loginBtn.addEventListener("click", playerLogin);
+revealBtn.addEventListener("click", reveal);
+hideBtn.addEventListener("click", hide);
+logoutBtn.addEventListener("click", logout);
+
+// Start polling every 5 seconds
+setInterval(pollPlayerStatus, 5000);
