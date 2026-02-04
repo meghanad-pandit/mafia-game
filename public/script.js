@@ -5,7 +5,7 @@ async function godLogin() {
     body: JSON.stringify({ password: pass.value })
   });
 
-  if (!res.ok) return alert("Login failed");
+  if (!res.ok) return alert("Wrong password");
 
   loginBox.style.display = "none";
   panel.style.display = "block";
@@ -25,13 +25,14 @@ async function loadPlayers() {
         <td>${p.role}</td>
         <td>
           <select onchange="assign('${p.key}', this.value)">
-            <option ${p.role==="Villager"?"selected":""}>Villager</option>
-            <option ${p.role==="Mafia"?"selected":""}>Mafia</option>
-            <option ${p.role==="Detective"?"selected":""}>Detective</option>
+            <option>Villager</option>
+            <option>Mafia</option>
+            <option>Doctor</option>
+            <option>Detective</option>
           </select>
         </td>
         <td>
-          <button onclick="copyKey('${p.key}')">Copy</button>
+          <button onclick="copyKey('${p.key}')">📋</button>
         </td>
       </tr>`;
   });
@@ -43,13 +44,12 @@ function copyKey(key) {
 }
 
 async function addPlayer() {
-  const name = playerName.value.trim();
-  if (!name) return alert("Enter player name");
+  if (!playerName.value.trim()) return;
 
   await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name: playerName.value })
   });
 
   playerName.value = "";
@@ -62,7 +62,6 @@ async function assign(key, role) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key, role })
   });
-  loadPlayers();
 }
 
 async function startGame() {
@@ -77,9 +76,4 @@ async function restartGame() {
 async function resetPlayers() {
   await fetch("/resetPlayers", { method: "POST" });
   loadPlayers();
-}
-
-async function logout() {
-  await fetch("/god/logout", { method: "POST" });
-  location.reload();
 }
