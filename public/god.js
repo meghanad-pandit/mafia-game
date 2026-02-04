@@ -70,6 +70,7 @@ async function loadPlayers() {
       const copyBtn = document.createElement("button");
       copyBtn.textContent = "Copy";
       copyBtn.classList.add("copy-btn");
+      copyBtn.style.marginLeft = "10px";
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(p.key);
         copyBtn.textContent = "Copied!";
@@ -102,6 +103,7 @@ async function loadPlayers() {
       delBtn.innerHTML = "🗑️"; // trash icon emoji
       delBtn.title = `Delete player "${p.name}"`;
       delBtn.classList.add("delete-btn");
+      delBtn.style.padding = "6px 10px";
       delBtn.onclick = async () => {
         if (confirm(`Delete player "${p.name}"?`)) {
           await deletePlayer(p.key);
@@ -116,6 +118,37 @@ async function loadPlayers() {
     alert("Error loading players");
   }
 }
+
+// Delete all players function
+async function deleteAllPlayers() {
+  if (!confirm("Are you sure you want to delete ALL players?")) return;
+
+  try {
+    // You can create a new endpoint for this or delete all players by sending keys one by one.
+    // For now, we will delete all players sequentially:
+
+    const res = await fetch("/players");
+    if (!res.ok) throw new Error("Failed to load players");
+
+    const data = await res.json();
+    const players = data.players;
+
+    for (const p of players) {
+      await fetch("/deletePlayer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: p.key }),
+      });
+    }
+
+    loadPlayers();
+  } catch {
+    alert("Error deleting all players");
+  }
+}
+
+// Attach event listener to delete all button
+document.getElementById("deleteAllBtn").addEventListener("click", deleteAllPlayers);
 
 async function addPlayer() {
   const input = document.getElementById("playerName");
@@ -168,30 +201,6 @@ async function deletePlayer(key) {
   }
 }
 
-async function deleteAllPlayers() {
-  if (!confirm("Are you sure you want to delete ALL players?")) return;
-
-  try {
-    const res = await fetch("/players");
-    if (!res.ok) throw new Error("Failed to load players");
-
-    const data = await res.json();
-    const players = data.players;
-
-    for (const p of players) {
-      await fetch("/deletePlayer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: p.key }),
-      });
-    }
-
-    loadPlayers();
-  } catch {
-    alert("Error deleting all players");
-  }
-}
-
 async function startGame() {
   try {
     const res = await fetch("/startGame", { method: "POST" });
@@ -219,6 +228,3 @@ async function resetGame() {
     alert("Error resetting game");
   }
 }
-
-// Attach event listener to delete all button
-document.getElementById("deleteAllBtn").addEventListener("click", deleteAllPlayers);
