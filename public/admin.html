@@ -3,24 +3,24 @@
 <head>
   <title>God Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="login">
-  <h2>👑 God Login</h2>
-  <input id="pass" type="password" placeholder="Password">
+<h2>👑 God Panel</h2>
+
+<div id="loginBox">
+  <input id="pass" type="password" placeholder="God Password">
   <button onclick="godLogin()">Login</button>
 </div>
 
-<div id="panel" class="hidden">
+<div id="panel" style="display:none">
   <button onclick="addPlayer()">➕ Add Player</button>
   <button onclick="startGame()">▶ Start</button>
   <button onclick="restartGame()">🔄 Restart</button>
   <button onclick="resetPlayers()">❌ Reset</button>
   <button onclick="logout()">Logout</button>
 
-  <table border="1">
+  <table border="1" width="100%">
     <thead>
       <tr>
         <th>Key</th>
