@@ -1,41 +1,211 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>God Panel - Mafia Game</title>
-  <link rel="stylesheet" href="god.css" />
+  <title>Mafia Game - Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: auto;
+      padding: 20px;
+      background: #f0f2f5;
+      color: #222;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    #loginBox, #gameBox {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #loginError {
+      color: red;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+    #status {
+      font-size: 1.2rem;
+      margin: 20px 0;
+      min-height: 50px;
+      color: #444;
+    }
+    #playerRoleCard {
+      margin: 20px auto;
+      width: 250px;
+      height: 350px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      position: relative;
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      user-select: none;
+      overflow: hidden;
+    }
+    #cardInner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #444;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #cardInner.flipped {
+      transform: rotateY(180deg);
+    }
+    .cardFace {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .cardFront {
+      background: #4CAF50;
+      color: white;
+      font-size: 1.5rem;
+    }
+    .cardBack {
+      background: #fff;
+      color: #444;
+      transform: rotateY(180deg);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+    .roleImage {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 15px;
+      border-radius: 50%;
+      object-fit: contain;
+      border: 3px solid #4CAF50;
+      background: white;
+    }
+    #revealBtn, #hideBtn, #logoutBtn {
+      width: 100%;
+      padding: 12px;
+      margin: 5px 0;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    #revealBtn {
+      background-color: #007BFF;
+      color: white;
+    }
+    #revealBtn:hover {
+      background-color: #0056b3;
+    }
+    #hideBtn {
+      background-color: #ffc107;
+      color: #333;
+    }
+    #hideBtn:hover {
+      background-color: #e0a800;
+    }
+    #logoutBtn {
+      background-color: #dc3545;
+      color: white;
+    }
+    #logoutBtn:hover {
+      background-color: #a71d2a;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>👑 God Panel</h2>
+  <h2>🎭 Mafia Game</h2>
 
-  <div id="godLoginBox">
-    <input id="godKeyInput" placeholder="Enter God Key" autocomplete="off" />
-    <button id="godLoginBtn">Login</button>
+  <div id="loginBox">
+    <input type="text" id="playerKey" placeholder="Enter Your Game Key" autocomplete="off" />
+    <button id="loginBtn">Login</button>
     <p id="loginError"></p>
   </div>
+  
+    <div id="notification" style="
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffcc00;
+      color: #333;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 9999;
+      max-width: 90%;
+      text-align: center;
+    "></div>
 
-  <div id="adminControls" style="display:none;">
-    <button id="addPlayerBtn" class="actionBtn">Add Player</button>
-    <button id="startGameBtn" class="actionBtn">▶ Start Game</button>
-    <button id="resetGameBtn" class="actionBtn">❌ Reset Players</button>
-
-    <div class="tableWrapper" style="margin-top:10px;">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Key (Click to Copy)</th>
-            <th>Role</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody id="playersTableBody"></tbody>
-      </table>
+  <div id="gameBox" style="display:none;">
+    <h3 id="playerName"></h3>
+    <div id="playerRoleCard" title="Tap card to flip">
+      <div id="cardInner">
+        <div class="cardFace cardFront">
+          Tap to Reveal Role
+        </div>
+        <div class="cardFace cardBack">
+          <img id="roleImage" class="roleImage" src="" alt="Role Image" />
+          <div id="roleText"></div>
+        </div>
+      </div>
     </div>
+    <div id="status">⏳ Waiting for game to start...</div>
+    <button id="revealBtn" style="display:none;">Reveal Role</button>
+    <button id="hideBtn" style="display:none;">Hide Role</button>
+    <button id="logoutBtn">Logout</button>
   </div>
 
-  <script src="god.js"></script>
+  <audio id="startSound" src="sounds/start.mp3" preload="auto"></audio>
+
+  <script src="player.js"></script>
 </body>
 </html>
