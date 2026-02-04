@@ -3,6 +3,42 @@
 <head>
   <title>Mafia Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      color: #fff;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 6px;
+      width: 90%;
+      max-width: 300px;
+      font-size: 16px;
+    }
+
+    #roleCard {
+      margin-top: 20px;
+      padding: 20px;
+      background: #222;
+      border-radius: 12px;
+      display: none;
+      transform: rotateY(90deg);
+      transition: transform 0.6s;
+    }
+
+    #roleCard.flip {
+      transform: rotateY(0deg);
+    }
+
+    img {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
@@ -17,12 +53,12 @@
 <div id="gameBox" style="display:none">
   <h3 id="playerName"></h3>
 
-  <div id="roleCard" style="display:none">
-    <img id="roleImg" width="120" onerror="this.style.display='none'">
-    <h3 id="roleText"></h3>
+  <div id="roleCard">
+    <h2 id="roleText"></h2>
+    <img id="roleImg" width="120">
   </div>
 
-  <p id="status">⏳ Waiting for God...</p>
+  <p id="status"></p>
 
   <button onclick="reveal()">Reveal</button>
   <button onclick="hide()">Hide</button>
