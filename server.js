@@ -6,6 +6,7 @@ app.use(express.static("public"));
 
 let players = [];
 let gameStarted = false;
+let gameVersion = 0; // 👈 NEW
 
 function generateKey(name) {
   const rand = Math.floor(100 + Math.random() * 900);
@@ -24,7 +25,7 @@ app.post("/addPlayer", (req, res) => {
     role: "Villager"
   });
 
-  res.json({ players, gameStarted });
+  res.json({ players, gameStarted, gameVersion });
 });
 
 app.post("/assignRole", (req, res) => {
@@ -38,17 +39,19 @@ app.post("/assignRole", (req, res) => {
 
 app.post("/startGame", (req, res) => {
   gameStarted = true;
-  res.json({ gameStarted });
+  gameVersion++; // 👈 NEW ROUND
+  res.json({ gameStarted, gameVersion });
 });
 
 app.post("/resetGame", (req, res) => {
   gameStarted = false;
+  gameVersion++; // 👈 RESET EVENT
   players.forEach(p => (p.role = "Villager"));
-  res.json({ reset: true });
+  res.json({ reset: true, gameVersion });
 });
 
 app.get("/players", (req, res) => {
-  res.json({ players, gameStarted });
+  res.json({ players, gameStarted, gameVersion });
 });
 
 /* PLAYER */
@@ -62,10 +65,11 @@ app.post("/login", (req, res) => {
   res.json({
     name: p.name,
     role: p.role,
-    gameStarted
+    gameStarted,
+    gameVersion
   });
 });
 
 app.listen(process.env.PORT || 3000, () =>
-  console.log("Server running")
+  console.log("✅ Server running")
 );
