@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>God Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>God Screen</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>👑 God Panel</h2>
+<div id="godLogin" class="card">
+  <h2>God Login</h2>
+  <input id="godKey" placeholder="God Key">
+  <button onclick="godLogin()">Login</button>
+</div>
 
-<input id="playerName" placeholder="Player Name">
-<button onclick="addPlayer()">Add Player</button>
+<div id="godPanel" class="hidden">
+  <h2>God Panel 👑</h2>
 
-<br><br>
+  <input id="playerName" placeholder="Player Name">
+  <button onclick="addPlayer()">Add Player</button>
 
-<button id="startBtn" onclick="startGame()">▶ Start Game</button>
-<button onclick="resetGame()">♻ Reset</button>
+  <button onclick="startGame()">Start Game</button>
+  <button onclick="resetGame()">Reset Players</button>
 
-<br><br>
-
-<table border="1" width="100%">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Game Key</th>
-      <th>Role</th>
-    </tr>
-  </thead>
-  <tbody id="playerTable"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Key</th><th>Role</th><th>❌</th></tr>
+    </thead>
+    <tbody id="playerTable"></tbody>
+  </table>
+</div>
 
 <script src="script.js"></script>
 </body>
