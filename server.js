@@ -14,7 +14,7 @@ function generateKey() {
   return Math.random().toString(36).substr(2, 6).toUpperCase();
 }
 
-/* -------- GOD AUTH -------- */
+/* ---------- GOD AUTH ---------- */
 app.post("/god/login", (req, res) => {
   if (req.body.password !== GOD_PASSWORD)
     return res.status(401).send("Invalid password");
@@ -31,12 +31,17 @@ app.post("/god/logout", (req, res) => {
   res.json({ logout: true });
 });
 
-/* -------- GOD ACTIONS -------- */
+/* ---------- GOD ACTIONS ---------- */
 app.post("/addPlayer", (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).send("Name required");
+
   players.push({
+    name,
     key: generateKey(),
     role: "Villager"
   });
+
   res.json(players);
 });
 
@@ -67,12 +72,13 @@ app.post("/resetPlayers", (req, res) => {
   res.json({ reset: true });
 });
 
-/* -------- PLAYER -------- */
+/* ---------- PLAYER ---------- */
 app.post("/login", (req, res) => {
   const p = players.find(x => x.key === req.body.key);
   if (!p) return res.status(401).send("Invalid key");
 
   res.json({
+    name: p.name,
     role: p.role,
     gameStarted
   });
