@@ -8,12 +8,14 @@
 
 <h2>👑 God Panel</h2>
 
-<div id="godLogin">
-  <input id="godKey" placeholder="God Key">
-  <button onclick="godLogin()">Login</button>
+<!-- GOD LOGIN -->
+<div id="godLoginBox">
+  <input id="godKey" placeholder="Enter God Key">
+  <button onclick="handleGodLogin()">Login</button>
   <p id="godError"></p>
 </div>
 
+<!-- GOD PANEL -->
 <div id="godPanel" style="display:none">
 
   <input id="playerName" placeholder="Player Name">
@@ -30,7 +32,7 @@
     <thead>
       <tr>
         <th>Name</th>
-        <th>Key</th>
+        <th>Game Key</th>
         <th>Role</th>
         <th>Assign</th>
         <th>Copy</th>
