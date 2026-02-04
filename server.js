@@ -64,6 +64,21 @@ app.get("/players", (req, res) => {
   res.json(players);
 });
 
+/* ---------------- GOD LOGIN ---------------- */
+
+const GOD_KEY = "GOD123"; // later replace with OTP logic
+
+app.post("/god/login", (req, res) => {
+  const { key } = req.body;
+
+  if (key !== GOD_KEY) {
+    return res.status(401).json({ error: "Invalid God Key" });
+  }
+
+  res.json({ success: true });
+});
+
+
 /* ---------------- PLAYER LOGIN ---------------- */
 
 app.post("/login", (req, res) => {
