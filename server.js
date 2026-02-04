@@ -43,8 +43,13 @@ app.post("/addPlayer", (req, res) => {
 });
 
 app.post("/assignRole", (req, res) => {
+  if (gameStarted) {
+    return res.status(403).json({ error: "Game already started. Roles are locked." });
+  }
+
   const p = players.find(x => x.key === req.body.key);
   if (p) p.role = req.body.role;
+
   res.json(players);
 });
 
