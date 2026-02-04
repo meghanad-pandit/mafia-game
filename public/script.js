@@ -1,31 +1,39 @@
-let playerKey = null;
+let currentPlayerKey = null;
 
-/* ---------------- GOD ---------------- */
+/* ---------- GOD LOGIN ---------- */
+async function handleGodLogin() {
+  const key = document.getElementById("godKey").value.trim();
+  const error = document.getElementById("godError");
 
-async function godLogin() {
   try {
     const res = await fetch("/god/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: godKey.value })
+      body: JSON.stringify({ key })
     });
 
     if (!res.ok) throw new Error();
 
-    godLogin.style.display = "none";
-    godPanel.style.display = "block";
+    document.getElementById("godLoginBox").style.display = "none";
+    document.getElementById("godPanel").style.display = "block";
     loadPlayers();
   } catch {
-    godError.innerText = "❌ Invalid God Key";
+    error.innerText = "❌ Invalid God Key";
   }
 }
 
+/* ---------- GOD ACTIONS ---------- */
 async function addPlayer() {
+  const name = document.getElementById("playerName").value.trim();
+  if (!name) return alert("Enter player name");
+
   await fetch("/addPlayer", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: playerName.value })
+    body: JSON.stringify({ name })
   });
+
+  document.getElementById("playerName").value = "";
   loadPlayers();
 }
 
@@ -57,7 +65,9 @@ async function loadPlayers() {
   const res = await fetch("/players");
   const players = await res.json();
 
+  const table = document.getElementById("table");
   table.innerHTML = "";
+
   players.forEach(p => {
     table.innerHTML += `
       <tr>
@@ -66,41 +76,46 @@ async function loadPlayers() {
         <td>${p.role}</td>
         <td>
           <select onchange="assignRole('${p.key}', this.value)">
-            <option ${p.role==="Villager"?"selected":""}>Villager</option>
-            <option ${p.role==="Mafia"?"selected":""}>Mafia</option>
-            <option ${p.role==="Detective"?"selected":""}>Detective</option>
-            <option ${p.role==="Doctor"?"selected":""}>Doctor</option>
+            ${["Villager","Mafia","Detective","Doctor"]
+              .map(r => `<option ${p.role===r?"selected":""}>${r}</option>`)
+              .join("")}
           </select>
         </td>
         <td>
-          <button onclick="navigator.clipboard.writeText('${p.key}')">Copy</button>
+          <button onclick="navigator.clipboard.writeText('${p.key}')">
+            Copy
+          </button>
         </td>
       </tr>
     `;
   });
 }
 
-/* ---------------- PLAYER ---------------- */
-
+/* ---------- PLAYER ---------- */
 async function playerLogin() {
-  playerKey = playerKeyInput.value;
+  const key = document.getElementById("playerKeyInput").value.trim();
+  const error = document.getElementById("loginError");
 
   try {
     const res = await fetch("/player/state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: playerKey })
+      body: JSON.stringify({ key })
     });
 
     if (!res.ok) throw new Error();
 
     const data = await res.json();
-    loginBox.style.display = "none";
-    gameBox.style.display = "block";
-    playerName.innerText = `Hi ${data.name} 👋`;
+    currentPlayerKey = key;
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("gameBox").style.display = "block";
+    document.getElementById("playerName").innerText =
+      `Hi ${data.name} 👋`;
+
     updateStatus(data);
   } catch {
-    loginError.innerText = "❌ Invalid Game Key";
+    error.innerText = "❌ Invalid Game Key";
   }
 }
 
@@ -108,7 +123,7 @@ async function syncState() {
   const res = await fetch("/player/state", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: playerKey })
+    body: JSON.stringify({ key: currentPlayerKey })
   });
   return res.json();
 }
@@ -116,26 +131,29 @@ async function syncState() {
 async function reveal() {
   const data = await syncState();
   if (!data.gameStarted) {
-    status.innerText = "😂 Game not started yet!";
+    document.getElementById("status").innerText =
+      "😂 Game not started yet!";
     return;
   }
 
-  status.innerHTML = `
+  document.getElementById("status").innerHTML = `
     <h3>${data.role}</h3>
     <img src="images/${data.role.toLowerCase()}.png"
-      onerror="this.style.display='none'"
-      style="max-width:120px">
+         onerror="this.style.display='none'"
+         style="max-width:120px">
   `;
 }
 
 function hide() {
-  status.innerText = "🙈 Role hidden. Stay sneaky!";
+  document.getElementById("status").innerText =
+    "🙈 Role hidden. Stay sneaky!";
 }
 
 function updateStatus(data) {
-  status.innerText = data.gameStarted
-    ? "🎭 Game started! Reveal your role"
-    : "😂 Waiting for God to start...";
+  document.getElementById("status").innerText =
+    data.gameStarted
+      ? "🎭 Game started! Reveal your role"
+      : "😂 Waiting for God to start...";
 }
 
 function logout() {
