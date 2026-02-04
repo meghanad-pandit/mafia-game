@@ -15,6 +15,9 @@ async function login() {
   role = data.role;
   started = data.gameStarted;
 
+  document.getElementById("playerName").innerText =
+    "👤 Player: " + data.name;
+
   loginBox.style.display = "none";
   gameBox.style.display = "block";
 
@@ -26,7 +29,9 @@ function toggle() {
   if (!started) return;
 
   revealed = !revealed;
-  status.innerText = revealed ? `🎭 Your role: ${role}` : "🤫 Role hidden";
+  status.innerText = revealed
+    ? `🎭 Your role: ${role}`
+    : "🤫 Role hidden";
 }
 
 function wait() {
