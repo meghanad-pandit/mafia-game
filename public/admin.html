@@ -3,37 +3,27 @@
 <head>
   <title>God Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { padding: 10px; margin: 5px 0; width: 100%; }
-    table { width: 100%; margin-top: 10px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>👑 God Panel</h2>
-
-<div id="godLogin">
-  <input id="godPassword" type="password" placeholder="God Password">
+<div id="login">
+  <h2>👑 God Login</h2>
+  <input id="pass" type="password" placeholder="Password">
   <button onclick="godLogin()">Login</button>
-  <p id="godError" style="color:red"></p>
 </div>
 
-<div id="panel" style="display:none">
-
-  <input id="playerName" placeholder="Player Name">
-  <button onclick="addPlayer()">Add Player</button>
-
-  <button onclick="startGame()">▶ Start Game</button>
-  <button onclick="restartGame()">🔄 Restart Game</button>
-  <button onclick="resetPlayers()">❌ Reset Players</button>
-  <button onclick="godLogout()">🚪 Logout</button>
+<div id="panel" class="hidden">
+  <button onclick="addPlayer()">➕ Add Player</button>
+  <button onclick="startGame()">▶ Start</button>
+  <button onclick="restartGame()">🔄 Restart</button>
+  <button onclick="resetPlayers()">❌ Reset</button>
+  <button onclick="logout()">Logout</button>
 
   <table border="1">
     <thead>
       <tr>
-        <th>Name</th>
-        <th>PIN</th>
+        <th>Key</th>
         <th>Role</th>
         <th>Assign</th>
         <th>Copy</th>
@@ -41,7 +31,6 @@
     </thead>
     <tbody id="table"></tbody>
   </table>
-
 </div>
 
 <script src="script.js"></script>
