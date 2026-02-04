@@ -1,19 +1,29 @@
 let currentPlayer = null;
 let gameStarted = false;
 
+// ===== GOD LOGIN ELEMENTS =====
+const godLoginDiv = document.getElementById("godLogin");
+const godPanelDiv = document.getElementById("godPanel");
+const godKeyInput = document.getElementById("godKey");
+const godError = document.getElementById("godError");
+
 /* ---------- GOD ---------- */
+
 async function godLogin() {
-  const key = godKey.value;
-  const r = await fetch("/god/login", {
+  const key = godKeyInput.value.trim();
+  const res = await fetch("/god/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ key })
   });
-  if (r.ok) {
-    godLoginDiv.style.display = "none";
-    godPanel.classList.remove("hidden");
-    loadPlayers();
-  } else alert("❌ Invalid God Key");
+
+  if (!res.ok) {
+    godError.innerText = "❌ Invalid God Key";
+    return;
+  }
+  godLoginDiv.style.display = "none";
+  godPanelDiv.style.display = "block";
+  loadPlayers();
 }
 
 async function addPlayer() {
