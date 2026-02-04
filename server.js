@@ -4,88 +4,84 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-const GOD_PASSWORD = "admin123";
-
 let players = [];
 let gameStarted = false;
+let godLoggedIn = false;
 
-/* ================= HELPERS ================= */
+const GOD_PASSWORD = "god123";
 
-function generatePin() {
-  return Math.floor(100 + Math.random() * 900).toString();
+/* UTIL */
+function generateKey() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/* ================= GOD LOGIN ================= */
-
+/* GOD AUTH */
 app.post("/god/login", (req, res) => {
-  if (req.body.password === GOD_PASSWORD) {
-    return res.json({ success: true });
-  }
-  res.status(401).json({ error: "Unauthorized" });
+  if (req.body.password !== GOD_PASSWORD)
+    return res.status(401).send("Invalid password");
+
+  if (godLoggedIn)
+    return res.status(403).send("God already logged in");
+
+  godLoggedIn = true;
+  res.send({ success: true });
 });
 
-/* ================= GOD ACTIONS ================= */
+app.post("/god/logout", (req, res) => {
+  godLoggedIn = false;
+  res.send({ logout: true });
+});
 
+/* GOD ACTIONS */
 app.post("/addPlayer", (req, res) => {
-  if (!req.body.name) {
-    return res.status(400).send("Invalid name");
-  }
+  const key = generateKey();
 
   players.push({
-    name: req.body.name,
-    pin: generatePin(),
-    role: "Villager" // default
+    key,
+    role: "Villager"
   });
 
-  res.json(players);
+  res.send(players);
 });
 
 app.post("/assignRole", (req, res) => {
-  const p = players.find(x => x.name === req.body.name);
+  const p = players.find(x => x.key === req.body.key);
   if (p) p.role = req.body.role;
-  res.json(players);
+  res.send(players);
 });
 
 app.post("/startGame", (req, res) => {
   gameStarted = true;
-  res.json({ started: true });
+  res.send({ started: true });
 });
 
 app.post("/restartGame", (req, res) => {
   gameStarted = false;
-
-  // Reset roles to default
   players.forEach(p => (p.role = "Villager"));
-
-  res.json({ restarted: true });
+  res.send({ restarted: true });
 });
 
 app.post("/resetPlayers", (req, res) => {
   players = [];
   gameStarted = false;
-  res.json({ reset: true });
+  res.send({ reset: true });
 });
 
-/* ================= PLAYER LOGIN ================= */
-
+/* PLAYER */
 app.post("/login", (req, res) => {
-  const p = players.find(
-    x => x.name === req.body.name && x.pin === req.body.pin
-  );
-
-  if (!p) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
+  const p = players.find(x => x.key === req.body.key);
+  if (!p) return res.status(401).send("Invalid key");
 
   res.json({
-    name: p.name,
     role: p.role,
     gameStarted
   });
 });
 
-app.get("/players", (req, res) => res.json(players));
+app.get("/status", (req, res) => {
+  res.send({ gameStarted });
+});
 
-app.listen(process.env.PORT || 3000, () =>
-  console.log("🎭 Mafia Game running")
-);
+app.get("/players", (req, res) => res.send(players));
+
+app.listen(process.env.PORT || 3000);
