@@ -1,184 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>God Panel - Mafia Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <style>
     body {
       font-family: Arial, sans-serif;
+      padding: 10px;
       max-width: 480px;
       margin: auto;
-      padding: 15px 10px 40px 10px;
-      background: #f7f9fc;
-      color: #222;
+      background: #f4f4f9;
+      color: #333;
     }
     h2 {
       text-align: center;
-      margin-bottom: 1rem;
-      font-weight: bold;
-      color: #2c3e50;
+      margin-bottom: 20px;
     }
-
-    #godLoginBox {
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    #godKeyInput {
-      width: 60%;
-      padding: 8px 10px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-right: 5px;
-      box-sizing: border-box;
-    }
-
-    #godLoginBtn {
-      padding: 9px 15px;
-      font-size: 1rem;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    #godLoginBtn:hover {
-      background-color: #2980b9;
-    }
-
-    #loginError {
-      color: red;
-      margin-top: 8px;
-      min-height: 20px;
-    }
-
-    #adminControls {
-      display: none;
-      margin-top: 15px;
-    }
-
-    button.actionBtn {
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 10px 15px;
-      margin: 5px 5px 10px 0;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button.actionBtn:hover:not(:disabled) {
-      background-color: #1e8449;
-    }
-    button.actionBtn:disabled {
-      background-color: #7f8c8d;
-      cursor: not-allowed;
-    }
-
-    /* Table container for horizontal scroll */
-    .tableWrapper {
-      overflow-x: auto;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+    #godLoginDiv, #adminPanel {
+      margin-bottom: 20px;
+      padding: 15px;
       background: white;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-
+    input, select, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 380px;
+      margin-top: 15px;
     }
-
-    thead {
-      background-color: #3498db;
-      color: white;
-      font-weight: bold;
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
       font-size: 0.9rem;
     }
-
-    tbody tr {
-      border-bottom: 1px solid #ddd;
-      height: 36px;
-    }
-
-    tbody tr:hover {
-      background-color: #f1faff;
-    }
-
-    td, th {
-      padding: 6px 10px;
-      text-align: center;
-      font-size: 0.85rem;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    td.keyCell {
-      color: #2980b9;
-      font-weight: 600;
+    button {
       cursor: pointer;
-      user-select: none;
-      transition: color 0.3s ease;
-    }
-    td.keyCell.copied {
-      color: #27ae60;
-    }
-
-    select.roleSelect {
-      padding: 3px 6px;
-      font-size: 0.85rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    button.deleteBtn {
-      background: transparent;
+      background-color: #4CAF50;
       border: none;
-      cursor: pointer;
-      color: #c0392b;
-      font-size: 1.2rem;
-      transition: color 0.3s ease;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
     }
-    button.deleteBtn:hover {
-      color: #e74c3c;
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #45a049;
+    }
+    .delete-btn {
+      background-color: #e74c3c;
+      padding: 4px 8px;
+    }
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    .copy-btn {
+      background-color: #3498db;
+      padding: 4px 8px;
+    }
+    .copy-btn:hover {
+      background-color: #2980b9;
+    }
+    .role-select {
+      width: 100%;
     }
   </style>
 </head>
 <body>
 
-  <h2>👑 God Panel</h2>
+<h2>👑 God Panel Login</h2>
 
-  <div id="godLoginBox">
-    <input id="godKeyInput" placeholder="Enter God Key" autocomplete="off" />
-    <button id="godLoginBtn">Login</button>
-    <p id="loginError"></p>
-  </div>
+<div id="godLoginDiv">
+  <input id="godKey" placeholder="Enter God Key" type="password" autocomplete="off" />
+  <button onclick="godLogin()">Login</button>
+  <p id="godLoginError" style="color:red;"></p>
+</div>
 
-  <div id="adminControls">
-    <button id="addPlayerBtn" class="actionBtn">Add Player</button>
-    <button id="startGameBtn" class="actionBtn">▶ Start Game</button>
-    <button id="resetGameBtn" class="actionBtn">❌ Reset Players</button>
+<div id="adminPanel" style="display:none;">
+  <h2>Players Management</h2>
+  
+  <input id="playerName" placeholder="Enter Player Name" autocomplete="off" />
+  <button onclick="addPlayer()">Add Player</button>
+  
+  <button id="startGameBtn" onclick="startGame()">▶ Start Game</button>
+  <button onclick="resetGame()">❌ Reset Game</button>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Key</th>
+        <th>Role</th>
+        <th>Change Role</th>
+        <th>Copy Key</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody id="playersTableBody"></tbody>
+  </table>
+</div>
 
-    <div class="tableWrapper" style="margin-top:10px;">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Key (Click to Copy)</th>
-            <th>Role</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody id="playersTableBody"></tbody>
-      </table>
-    </div>
-  </div>
+<script src="god.js"></script>
 
-  </body>
+</body>
 </html>
